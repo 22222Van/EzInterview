@@ -16,6 +16,9 @@ export default defineComponent({
       } as Student,
       avatarUrl: 'https://i.pravatar.cc/1000' as string,
       answer: '' as string,
+      volume: 50,
+      micLevel: 70,
+      networkQuality: '非常好'
     }
   },
 })

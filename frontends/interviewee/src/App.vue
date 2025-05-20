@@ -14,6 +14,23 @@
         <p><strong>姓名：</strong>{{ student.name }}</p>
         <p><strong>学号：</strong>{{ student.id }}</p>
       </div>
+      <div class="controls-container">
+        <div class="control-item">
+          <label>音量</label>
+          <span>{{ volume }}%</span>
+          <input type="range" v-model="volume" min="0" max="100" />
+        </div>
+        <div class="control-item">
+          <label>麦克风</label>
+          <span>{{ micLevel }}%</span>
+          <input type="range" v-model="micLevel" min="0" max="100" />
+        </div>
+        <div class="control-item">
+          <label>网络质量</label>
+          <span>{{ networkQuality }}</span>
+          <!-- <input type="range" v-model="networkQuality" min="0" max="100" /> -->
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -27,7 +44,6 @@
   font-family: Arial, sans-serif;
 }
 
-/* 左侧题目区域 */
 .question-section {
   flex: 2;
   padding: 30px;
@@ -56,7 +72,6 @@
   border-radius: 4px;
 }
 
-/* 右侧信息区域 */
 .info-section {
   flex: 1;
   background-color: #007bff;
@@ -65,7 +80,6 @@
   flex-direction: column;
   align-items: center;
   padding: 40px 20px;
-  /* width: 1000px; */
 }
 
 .avatar {
@@ -81,5 +95,50 @@
   font-size: 18px;
   margin: 8px 0;
 }
+
+.controls-container {
+  width: 100%;
+  display: flex;
+  gap: 15px;
+  margin-top: 30px;
+  padding: 0 10px;
+}
+
+.control-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.control-item label {
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+
+.control-item input[type="range"] {
+  width: 100%;
+  margin: 5px 0;
+  appearance: none;
+  -webkit-appearance: none;
+  height: 5px;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 5px;
+  outline: none;
+}
+
+.control-item input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  background: #fff;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.control-item span {
+  font-size: 12px;
+  margin-top: 5px;
+  opacity: 0.9;
+}
 </style>
-c:\Users\Dell\Downloads\新建文件夹\App.ts
