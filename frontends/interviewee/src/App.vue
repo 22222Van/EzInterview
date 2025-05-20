@@ -48,8 +48,6 @@
   flex: 2;
   padding: 30px;
   overflow-y: auto;
-  background-color: #f9f9f9;
-  border-right: 1px solid #ccc;
 }
 
 .question-section h2 {
@@ -68,7 +66,6 @@
   padding: 10px;
   font-size: 16px;
   resize: vertical;
-  border: 1px solid #ccc;
   border-radius: 4px;
 }
 
