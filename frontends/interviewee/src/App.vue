@@ -2,9 +2,8 @@
   <div class="container">
     <!-- 左侧题目区域 -->
     <div class="question-section">
-      <h2>题目一</h2>
-      <p>请简要分析人工智能对未来社会的影响，并结合实例说明你的观点。</p>
-      <textarea v-model="answer" placeholder="请输入你的答案..."></textarea>
+      <h2>题目</h2>
+      <p>{{ questionContent || '正在连接到服务器...' }}</p>
     </div>
 
     <!-- 右侧考生信息区域 -->
@@ -58,6 +57,7 @@
 .question-section p {
   font-size: 16px;
   margin-bottom: 20px;
+  white-space: pre-line;
 }
 
 .question-section textarea {

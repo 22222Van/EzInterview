@@ -1,0 +1,59 @@
+from websockets.asyncio.server import ServerConnection
+import websockets
+
+import asyncio
+import random
+from uuid import UUID
+
+
+# 示例题目池
+questions: list[str] = [
+    "请简要分析人工智能对未来社会的影响。",
+    "谈谈你对‘内卷’现象的看法。",
+    "环保和经济发展能否兼顾？",
+    "如何在压力中保持心理健康？",
+    "你如何看待远程办公？",
+    "社交媒体对青少年有什么影响？",
+    "你对传统文化在现代社会的价值有何看法？",
+    "如果你设计一门新课程，会是什么？",
+    "终身学习对职场人意味着什么？",
+    "请从你的生活经历谈谈一个改变你想法的事件。"
+]
+
+# 存储当前连接和任务的映射
+client_tasks: dict[ServerConnection, asyncio.Task[None]] = {}
+
+
+async def send_questions_to_client(
+    websocket: ServerConnection, id: UUID
+) -> None:
+    while True:
+        question: str = random.choice(questions)
+        print(f"发送消息到客户端{id}：{question}")
+        await websocket.send(question)
+        await asyncio.sleep(1)
+
+
+async def handler(websocket: ServerConnection) -> None:
+    id = websocket.id
+
+    print(f"客户端{id}连接")
+    task: asyncio.Task[None] = asyncio.create_task(
+        send_questions_to_client(websocket, id))
+    client_tasks[websocket] = task
+
+    try:
+        await websocket.wait_closed()
+    finally:
+        print(f"客户端{id}断开")
+        task.cancel()
+        client_tasks.pop(websocket, None)
+
+
+async def main() -> None:
+    async with websockets.serve(handler, "0.0.0.0", 9009):
+        print("WebSocket 服务器已启动...")
+        await asyncio.Future()
+
+if __name__ == "__main__":
+    asyncio.run(main())
