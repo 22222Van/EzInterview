@@ -4,7 +4,8 @@ import websockets
 import asyncio
 import random
 from uuid import UUID
-
+import json
+from pprint import pprint
 
 # 示例题目池
 questions: list[str] = [
@@ -27,10 +28,29 @@ client_tasks: dict[ServerConnection, asyncio.Task[None]] = {}
 async def send_questions_to_client(
     websocket: ServerConnection, id: UUID
 ) -> None:
+    for i in range(10, 0, -1):
+        payload = {
+            'type': 'waiting',
+            'count': i,
+        }
+        payloads_string = json.dumps(payload)
+        print(f"发送消息到客户端{id}")
+        pprint(payload)
+        print()
+        await websocket.send(payloads_string)
+        await asyncio.sleep(1)
+
     while True:
         question: str = random.choice(questions)
-        print(f"发送消息到客户端{id}：{question}")
-        await websocket.send(question)
+        payload = {
+            'type': 'question',
+            'content': question,
+        }
+        payloads_string = json.dumps(payload)
+        print(f"发送消息到客户端{id}")
+        pprint(payload)
+        print()
+        await websocket.send(payloads_string)
         await asyncio.sleep(1)
 
 
@@ -39,7 +59,8 @@ async def handler(websocket: ServerConnection) -> None:
 
     print(f"客户端{id}连接")
     task: asyncio.Task[None] = asyncio.create_task(
-        send_questions_to_client(websocket, id))
+        send_questions_to_client(websocket, id)
+    )
     client_tasks[websocket] = task
 
     try:
