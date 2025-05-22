@@ -1,3 +1,6 @@
+import QuestionDisplay from './QuestionViews/QuestionDisplay.vue'
+import QuestionWaiting from './QuestionViews/QuestionWaiting.vue'
+
 import { defineComponent } from 'vue'
 
 export default defineComponent({
@@ -9,6 +12,10 @@ export default defineComponent({
       questionContent: '',
       waitingCount: 0,
     }
+  },
+  components: {
+    QuestionWaiting,
+    QuestionDisplay,
   },
   mounted() {
     const host = window.location.hostname
