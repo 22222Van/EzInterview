@@ -29,7 +29,7 @@
 <style scoped>
 .info-section {
   flex: 1;
-  background-color: #007bff;
+  background-color: var(--ez-blue);
   color: white;
   display: flex;
   flex-direction: column;
