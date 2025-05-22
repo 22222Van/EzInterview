@@ -11,6 +11,8 @@ export default defineComponent({
       mode: '' as '' | 'waiting' | 'question',
       questionContent: '',
       waitingCount: 0,
+      steps: ['Step 1', 'Step 2', 'Step 3'],
+      currentStep: 1, // 控制当前高亮的步骤（从0开始）
     }
   },
   components: {
