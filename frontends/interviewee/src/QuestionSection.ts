@@ -1,6 +1,6 @@
-import QuestionDisplay from './QuestionViews/QuestionDisplay.vue'
 import QuestionPreparing from './QuestionViews/QuestionPreparing.vue'
 import QuestionCounting from './QuestionViews/QuestionCounting.vue'
+import QuestionInterviewing from './QuestionViews/QuestionInterviewing.vue'
 import { getSocket } from '@/socket'
 import { COUNTDOWN_TOTAL_TIME } from '@/constants'
 
@@ -28,8 +28,8 @@ export default defineComponent({
   },
   components: {
     QuestionPreparing,
-    QuestionDisplay,
     QuestionCounting,
+    QuestionInterviewing,
   },
   mounted() {
     const socket = getSocket()
@@ -84,9 +84,9 @@ export default defineComponent({
               }
             }, 1000)
           }
-        } else if (data.type === 'question' && typeof data.content === 'string') {
+        } else if (data.type === 'interviewing' && typeof data.currentQuestion === 'number') {
           this.mode = 'interviewing'
-          this.questionContent = data.content
+          this.currentQuestion = data.currentQuestion
         } else {
           console.warn('未知数据格式', data)
         }

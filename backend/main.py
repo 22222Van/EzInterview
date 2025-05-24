@@ -55,6 +55,8 @@ async def send_payload(websocket: ServerConnection, payload: Any):
 #         await asyncio.sleep(1)
 
 class InterviewSystem:
+    question_titles = ['1', '2', '3', '4', '5', '6', '7', '8']
+
     def __init__(self) -> None:
         super().__init__()
         self.preparing_candidates: set[ServerConnection] = set()
@@ -63,6 +65,11 @@ class InterviewSystem:
         self.finished_candidates: set[ServerConnection] = set()
         self.interviewer: Optional[ServerConnection] = None
         self.interviewing_state: SystemStateType = 'counting'
+        self.current_question: int = 0
+
+    def init_interview(self) -> None:
+        self.interviewing_state = 'counting'
+        self.current_question = 0
 
     @property
     def state(self) -> SystemStateType:
@@ -76,12 +83,19 @@ class InterviewSystem:
         self.interviewing_candidate = None
         if len(self.queueing_candidates) != 0:
             self.interviewing_candidate = self.queueing_candidates.pop(0)
-            self.interviewing_state = 'counting'
+            self.init_interview()
 
-    async def flush_frontends(self):
+    async def flush_current(self):
+        if self.interviewing_candidate is not None:
+            await send_payload(self.interviewing_candidate, {
+                'type': self.interviewing_state,
+                'currentQuestion': self.current_question
+            })
+
+    async def flush_queue(self):
         shared_data = {
-            'questionTitles': ['1', '2', '3', '4', '5', '6', '7', '8'],
-            'queueQuestionCount': 0,
+            'questionTitles': self.question_titles,
+            'queueQuestionCount': len(self.question_titles)-self.current_question,
         }
 
         tasks = []
@@ -105,11 +119,6 @@ class InterviewSystem:
             }
             tasks.append(send_payload(c, data))
 
-        if self.interviewing_candidate is not None:
-            tasks.append(send_payload(self.interviewing_candidate, {
-                'type': self.interviewing_state,
-            }))
-
         # 并发执行所有任务
         results = await asyncio.gather(*tasks, return_exceptions=True)
         for r in results:
@@ -123,17 +132,18 @@ class InterviewSystem:
             websocket not in self.finished_candidates
         ):
             self.preparing_candidates.add(websocket)
-            await self.flush_frontends()
+            await self.flush_queue()
 
     async def pop_interviewee(self, websocket: ServerConnection):
         if websocket in self.preparing_candidates:
             self.preparing_candidates.remove(websocket)
         elif websocket in self.queueing_candidates:
             self.queueing_candidates.remove(websocket)
-            await self.flush_frontends()
+            await self.flush_queue()
         elif websocket is self.interviewing_candidate:
             self.next_candidate()
-            await self.flush_frontends()
+            await self.flush_current()
+            await self.flush_queue()
         elif websocket in self.finished_candidates:
             self.finished_candidates.remove(websocket)
 
@@ -146,15 +156,18 @@ class InterviewSystem:
                     print(f'面试者{websocket.id}已经准备好')
                     self.preparing_candidates.remove(websocket)
                     if self.state == 'idle':
-                        self.interviewing_state = 'counting'
+                        self.init_interview()
                         self.interviewing_candidate = websocket
+                        await self.flush_current()
                     else:
                         self.queueing_candidates.append(websocket)
-                    await self.flush_frontends()
+                    await self.flush_queue()
                 else:
                     return False
             case {'type': 'start'}:
-                raise NotImplementedError()
+                if websocket is self.interviewing_candidate:
+                    self.interviewing_state = 'interviewing'
+                    await self.flush_current()
             case _:
                 return False
         return True
