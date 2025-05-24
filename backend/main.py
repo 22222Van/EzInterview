@@ -2,34 +2,35 @@ from websockets.asyncio.server import ServerConnection
 import websockets
 
 import asyncio
-import random
-from uuid import UUID
 import json
 from pprint import pprint
 
-from typing import Optional, Any
+from typing import Optional, Any, Literal
 
-# 记录当前在线面试官的 websocket 连接
-interviewer_connection: Optional[ServerConnection] = None
-
-# 示例题目池
-questions: list[str] = [
-    "请简要分析人工智能对未来社会的影响。",
-    "谈谈你对‘内卷’现象的看法。",
-    "环保和经济发展能否兼顾？",
-    "如何在压力中保持心理健康？",
-    "你如何看待远程办公？",
-    "社交媒体对青少年有什么影响？",
-    "你对传统文化在现代社会的价值有何看法？",
-    "如果你设计一门新课程，会是什么？",
-    "终身学习对职场人意味着什么？",
-    "请从你的生活经历谈谈一个改变你想法的事件。"
+SystemStateType = Literal['idle', 'counting', 'interviewing']
+IntervieweeStateType = Literal[
+    'preparing', 'waiting', 'counting', 'interviewing', 'finished'
 ]
 
 
-async def send_payload(websocket: ServerConnection, id: UUID, payload: Any):
+# # 示例题目池
+# questions: list[str] = [
+#     "请简要分析人工智能对未来社会的影响。",
+#     "谈谈你对‘内卷’现象的看法。",
+#     "环保和经济发展能否兼顾？",
+#     "如何在压力中保持心理健康？",
+#     "你如何看待远程办公？",
+#     "社交媒体对青少年有什么影响？",
+#     "你对传统文化在现代社会的价值有何看法？",
+#     "如果你设计一门新课程，会是什么？",
+#     "终身学习对职场人意味着什么？",
+#     "请从你的生活经历谈谈一个改变你想法的事件。"
+# ]
+
+
+async def send_payload(websocket: ServerConnection, payload: Any):
     payloads_string = json.dumps(payload)
-    print(f"发送消息到{id}")
+    print(f"发送消息到{websocket.id}")
     pprint(payload)
     print()
     await websocket.send(payloads_string)
@@ -53,42 +54,145 @@ async def send_payload(websocket: ServerConnection, id: UUID, payload: Any):
 #         })
 #         await asyncio.sleep(1)
 
+class InterviewSystem:
+    def __init__(self) -> None:
+        super().__init__()
+        self.preparing_candidates: set[ServerConnection] = set()
+        self.queueing_candidates: list[ServerConnection] = []
+        self.interviewing_candidate: Optional[ServerConnection] = None
+        self.finished_candidates: set[ServerConnection] = set()
+        self.interviewer: Optional[ServerConnection] = None
+        self.interviewing_state: SystemStateType = 'counting'
+
+    @property
+    def state(self) -> SystemStateType:
+        if self.interviewing_candidate is None:
+            return 'idle'
+        return self.interviewing_state
+
+    async def flush_frontends(self):
+        shared_data = {
+            'questionTitles': ['1', '2', '3', '4', '5', '6', '7', '8'],
+            'queueQuestionCount': 0,
+        }
+
+        tasks = []
+
+        for c in self.preparing_candidates:
+            data = {
+                'type': 'preparing',
+                'queueCount': len(self.queueing_candidates),
+                **shared_data
+            }
+            tasks.append(send_payload(c, data))
+
+        for i, c in enumerate(self.queueing_candidates):
+            data = {
+                'type': 'waiting',
+                'queueCount': i + 1,
+                **shared_data
+            }
+            tasks.append(send_payload(c, data))
+
+        if self.interviewing_candidate is not None:
+            tasks.append(send_payload(self.interviewing_candidate, {
+                'type': '',
+            }))
+
+        # 并发执行所有任务
+        await asyncio.gather(*tasks)
+
+    async def add_interviewee(self, websocket: ServerConnection):
+        if (
+            websocket not in self.queueing_candidates and
+            websocket is not self.interviewing_candidate and
+            websocket not in self.finished_candidates
+        ):
+            self.preparing_candidates.add(websocket)
+            await self.flush_frontends()
+
+    def pop_interviewee(self, websocket: ServerConnection):
+        if websocket in self.preparing_candidates:
+            self.preparing_candidates.remove(websocket)
+        elif websocket in self.queueing_candidates:
+            self.queueing_candidates.remove(websocket)
+            # TODO: 更新队列人数
+        elif websocket is self.interviewing_candidate:
+            pass
+            # TODO: 下一个
+        elif websocket in self.finished_candidates:
+            self.finished_candidates.remove(websocket)
+
+    async def parse_interviewee_message(
+        self, websocket: ServerConnection, data: dict[Any, Any]
+    ) -> bool:
+        match data:
+            case {'type': 'ready'}:
+                if websocket in self.preparing_candidates:
+                    print(f'面试者{websocket.id}已经准备好')
+                    self.preparing_candidates.remove(websocket)
+                    self.queueing_candidates.append(websocket)
+                    if self.state == 'idle':
+                        pass  # TODO: 直接把这个candidate加到正在面试
+                    await self.flush_frontends()
+                else:
+                    return False
+            case {'type': 'start'}:
+                raise NotImplementedError()
+            case _:
+                return False
+        return True
+
+
+system = InterviewSystem()
+
 
 async def interviewee_handler(websocket: ServerConnection) -> None:
-    id = websocket.id
+    global system
 
+    id = websocket.id
+    await system.add_interviewee(websocket)
     print(f"面试者端{id}连接")
-    # task: asyncio.Task[None] = asyncio.create_task(
-    #     send_questions_to_client(websocket, id)
-    # )
 
     try:
-        await websocket.wait_closed()
+        async for message in websocket:
+            try:
+                data = json.loads(message)
+                if not isinstance(data, dict):
+                    print(f"从面试者{id}收到非字典消息: {message!r}")
+                    continue
+                result = await system.parse_interviewee_message(websocket, data)
+                if not result:
+                    print(f"从面试者{id}收到异常 JSON 消息: {message!r}")
+            except json.JSONDecodeError:
+                print(f"从面试者{id}收到非 JSON 消息: {message!r}")
+    except (websockets.ConnectionClosed, asyncio.CancelledError) as e:
+        print(f"面试者端{id}连接异常关闭: {e}")
     finally:
+        system.pop_interviewee(websocket)
         print(f"面试者端{id}断开")
-        # task.cancel()
 
 
 async def interviewer_handler(websocket: ServerConnection) -> None:
+    global system
+
     id = websocket.id
     print(f"面试官端{id}连接")
 
-    global interviewer_connection
-
-    if interviewer_connection is None:
+    if system.interviewer is None:
         print(f'允许面试官端{id}的连接')
-        interviewer_connection = websocket
+        system.interviewer = websocket
         # TODO: 发送允许消息，设置面试者端的初始状态
     else:
         print(f'拒绝面试官端{id}的连接')
-        await send_payload(websocket, id, {'type': 'reject'})
+        await send_payload(websocket, {'type': 'reject'})
 
     try:
         await websocket.wait_closed()
     finally:
         print(f"面试官端{id}断开")
-        if interviewer_connection is websocket:
-            interviewer_connection = None
+        if system.interviewer is websocket:
+            system.interviewer = None
 
 
 async def main() -> None:

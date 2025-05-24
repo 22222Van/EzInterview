@@ -26,8 +26,8 @@
     </template>
 
     <template v-else>
-      <QuestionPreparing v-if="mode === 'preparing'" :queueCount="queueCount" :questionCount="questionCount"
-        :queueQuestionCount="queueQuestionCount" />
+      <QuestionPreparing v-if="mode === 'preparing' || mode === 'waiting'" :queueCount="queueCount"
+        :questionCount="questionCount" :queueQuestionCount="queueQuestionCount" :mode="mode" />
       <QuestionDisplay v-else-if="mode === 'interviewing'" :content="questionContent" />
     </template>
   </div>

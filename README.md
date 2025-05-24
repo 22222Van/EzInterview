@@ -9,7 +9,7 @@ Author: 万宇昂、叶卿、刘兆骋、胡崮斌、钱嘉烨
 
 ### 后端
 
-后端基于 Python，请确保使用的 Python 版本为 **3.9 或更高**。
+后端基于 Python，请确保使用的 Python 版本为 **3.10 或更高**。
 
 1. 安装 [Python](https://www.python.org/downloads/)
 

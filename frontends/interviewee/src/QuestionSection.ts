@@ -1,5 +1,6 @@
 import QuestionDisplay from './QuestionViews/QuestionDisplay.vue'
 import QuestionPreparing from './QuestionViews/QuestionPreparing.vue'
+import { getSocket } from '@/socket'
 
 import { defineComponent } from 'vue'
 
@@ -8,11 +9,11 @@ export default defineComponent({
   data() {
     return {
       connectionStatus: 'connecting' as 'connecting' | 'connected' | 'error',
-      mode: 'preparing' as 'preparing' | 'waiting' | 'counting' | 'interviewing' | 'finished',
+      mode: '' as '' | 'preparing' | 'waiting' | 'counting' | 'interviewing' | 'finished',
       questionContent: '',
       queueCount: 0,
       queueQuestionCount: 0,
-      questionTitles: [],
+      questionTitles: ['Q1', 'Q2'],
       currentQuestion: -1,
     }
   },
@@ -26,9 +27,7 @@ export default defineComponent({
     QuestionDisplay,
   },
   mounted() {
-    const host = window.location.hostname
-    const port = '9009'
-    const socket = new WebSocket(`ws://${host}:${port}/`)
+    const socket = getSocket()
 
     socket.onopen = () => {
       console.log('WebSocket 已连接')
@@ -39,9 +38,28 @@ export default defineComponent({
       try {
         const data = JSON.parse(event.data)
 
-        if (data.type === 'waiting' && typeof data.count === 'number') {
+        if (data.type === '') {
+          this.mode = ''
+        } else if (
+          data.type === 'preparing' &&
+          Array.isArray(data.questionTitles) &&
+          typeof data.queueCount === 'number' &&
+          typeof data.queueQuestionCount === 'number'
+        ) {
+          this.mode = 'preparing'
+          this.questionTitles = data.questionTitles
+          this.queueCount = data.queueCount
+          this.queueQuestionCount = data.queueQuestionCount
+        } else if (
+          data.type === 'waiting' &&
+          Array.isArray(data.questionTitles) &&
+          typeof data.queueCount === 'number' &&
+          typeof data.queueQuestionCount === 'number'
+        ) {
           this.mode = 'waiting'
-          this.queueCount = data.count
+          this.questionTitles = data.questionTitles
+          this.queueCount = data.queueCount
+          this.queueQuestionCount = data.queueQuestionCount
         } else if (data.type === 'question' && typeof data.content === 'string') {
           this.mode = 'interviewing'
           this.questionContent = data.content

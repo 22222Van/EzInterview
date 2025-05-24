@@ -18,7 +18,9 @@
     <textarea placeholder="" class="test-textarea"></textarea>
     <div class="buttons">
       <div class="button-container">
-        <button class="blue-button" @click="onReadyClick">我准备好了</button>
+        <button class="blue-button" :style="{ visibility: mode === 'preparing' ? 'visible' : 'hidden' }"
+          @click="onReadyClick"> 我准备好了
+        </button>
       </div>
       <div class="bottom-controls">
         <button class="blue-button" @click="onHelpClick">帮助</button>
@@ -32,11 +34,25 @@
 </template>
 
 <script lang="ts" setup>
-defineProps<{ questionCount: number, queueCount: number, queueQuestionCount: number }>()
+import { getSocket } from '@/socket'
+
+defineProps<{
+  questionCount: number,
+  queueCount: number,
+  queueQuestionCount: number,
+  mode: 'preparing' | 'waiting'
+}>()
 
 function onReadyClick() {
-  // TODO
-  alert('准备开始面试！');
+  const confirmQuit = confirm('确定要开始面试吗？');
+  if (confirmQuit) {
+    const socket = getSocket();
+    if (socket.readyState === WebSocket.OPEN) {
+      socket.send(JSON.stringify({ type: 'ready' }));
+    } else {
+      console.error('WebSocket 未连接');
+    }
+  }
 }
 
 function onHelpClick() {
@@ -82,9 +98,6 @@ function onQuitClick() {
   filter: brightness(0.9);
 }
 
-/* 特定按钮样式 */
-.blue-button,
-.blue-button,
 .blue-button {
   background-color: var(--ez-blue);
 }
