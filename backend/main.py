@@ -78,10 +78,13 @@ class InterviewSystem:
 
         tasks = []
 
+        total_queue_count = len(self.queueing_candidates)
+        if self.state != 'idle':
+            total_queue_count += 1
         for c in self.preparing_candidates:
             data = {
                 'type': 'preparing',
-                'queueCount': len(self.queueing_candidates),
+                'queueCount': total_queue_count,
                 **shared_data
             }
             tasks.append(send_payload(c, data))
@@ -100,7 +103,10 @@ class InterviewSystem:
             }))
 
         # 并发执行所有任务
-        await asyncio.gather(*tasks)
+        results = await asyncio.gather(*tasks, return_exceptions=True)
+        for r in results:
+            if isinstance(r, Exception):
+                print(f"发送任务出错：{r}")
 
     async def add_interviewee(self, websocket: ServerConnection):
         if (
@@ -111,15 +117,15 @@ class InterviewSystem:
             self.preparing_candidates.add(websocket)
             await self.flush_frontends()
 
-    def pop_interviewee(self, websocket: ServerConnection):
+    async def pop_interviewee(self, websocket: ServerConnection):
         if websocket in self.preparing_candidates:
             self.preparing_candidates.remove(websocket)
         elif websocket in self.queueing_candidates:
             self.queueing_candidates.remove(websocket)
-            # TODO: 更新队列人数
+            await self.flush_frontends()
         elif websocket is self.interviewing_candidate:
-            pass
-            # TODO: 下一个
+            # TODO: 上一个掉线之后自动下一个
+            await self.flush_frontends()
         elif websocket in self.finished_candidates:
             self.finished_candidates.remove(websocket)
 
@@ -131,9 +137,11 @@ class InterviewSystem:
                 if websocket in self.preparing_candidates:
                     print(f'面试者{websocket.id}已经准备好')
                     self.preparing_candidates.remove(websocket)
-                    self.queueing_candidates.append(websocket)
                     if self.state == 'idle':
-                        pass  # TODO: 直接把这个candidate加到正在面试
+                        self.interviewing_state = 'counting'
+                        self.interviewing_candidate = websocket
+                    else:
+                        self.queueing_candidates.append(websocket)
                     await self.flush_frontends()
                 else:
                     return False
@@ -166,10 +174,8 @@ async def interviewee_handler(websocket: ServerConnection) -> None:
                     print(f"从面试者{id}收到异常 JSON 消息: {message!r}")
             except json.JSONDecodeError:
                 print(f"从面试者{id}收到非 JSON 消息: {message!r}")
-    except (websockets.ConnectionClosed, asyncio.CancelledError) as e:
-        print(f"面试者端{id}连接异常关闭: {e}")
     finally:
-        system.pop_interviewee(websocket)
+        await system.pop_interviewee(websocket)
         print(f"面试者端{id}断开")
 
 

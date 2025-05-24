@@ -7,7 +7,7 @@
         当前暂无候选人在您前面。点击按钮后，面试将在 15 秒内自动开始。
       </template>
       <template v-else-if="queueCount === 1">
-        目前有 1 位候选人在您之前，他仍需完成 {{ queueQuestionCount }} 道题目。请稍候，您的面试即将开始。
+        当前有 1 位候选人在您之前，他仍需完成 {{ queueQuestionCount }} 道题目。请稍候，您的面试即将开始。
       </template>
       <template v-else>
         当前有 {{ queueCount }} 位候选人在您前面。请耐心等待，您的面试很快就会开始。
