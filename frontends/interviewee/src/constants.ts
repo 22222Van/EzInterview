@@ -1,0 +1,2 @@
+export let COUNTDOWN_TOTAL_TIME = 5
+export let INTERVIEWEE_PORT = '9009'

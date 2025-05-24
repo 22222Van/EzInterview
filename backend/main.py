@@ -107,7 +107,7 @@ class InterviewSystem:
 
         if self.interviewing_candidate is not None:
             tasks.append(send_payload(self.interviewing_candidate, {
-                'type': '',
+                'type': self.interviewing_state,
             }))
 
         # 并发执行所有任务

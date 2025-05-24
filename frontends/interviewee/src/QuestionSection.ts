@@ -1,6 +1,8 @@
 import QuestionDisplay from './QuestionViews/QuestionDisplay.vue'
 import QuestionPreparing from './QuestionViews/QuestionPreparing.vue'
+import QuestionCounting from './QuestionViews/QuestionCounting.vue'
 import { getSocket } from '@/socket'
+import { COUNTDOWN_TOTAL_TIME } from '@/constants'
 
 import { defineComponent } from 'vue'
 
@@ -13,8 +15,10 @@ export default defineComponent({
       questionContent: '',
       queueCount: 0,
       queueQuestionCount: 0,
-      questionTitles: ['Q1', 'Q2'],
+      questionTitles: [],
       currentQuestion: -1,
+      countdown: -1,
+      countdownTimer: null as null | number,
     }
   },
   computed: {
@@ -25,6 +29,7 @@ export default defineComponent({
   components: {
     QuestionPreparing,
     QuestionDisplay,
+    QuestionCounting,
   },
   mounted() {
     const socket = getSocket()
@@ -60,6 +65,25 @@ export default defineComponent({
           this.questionTitles = data.questionTitles
           this.queueCount = data.queueCount
           this.queueQuestionCount = data.queueQuestionCount
+        } else if (data.type === 'counting') {
+          if (this.mode !== 'counting') {
+            this.mode = 'counting'
+            this.countdown = COUNTDOWN_TOTAL_TIME
+
+            if (this.countdownTimer) {
+              clearInterval(this.countdownTimer)
+            }
+
+            this.countdownTimer = window.setInterval(() => {
+              if (this.countdown > 0) {
+                this.countdown--
+              } else {
+                clearInterval(this.countdownTimer!)
+                this.countdownTimer = null
+                socket.send(JSON.stringify({ type: 'start' }))
+              }
+            }, 1000)
+          }
         } else if (data.type === 'question' && typeof data.content === 'string') {
           this.mode = 'interviewing'
           this.questionContent = data.content
@@ -77,6 +101,16 @@ export default defineComponent({
 
     socket.onclose = () => {
       this.connectionStatus = 'error'
+      if (this.countdownTimer) {
+        clearInterval(this.countdownTimer)
+        this.countdownTimer = null
+      }
+    }
+  },
+  beforeUnmount() {
+    if (this.countdownTimer) {
+      clearInterval(this.countdownTimer)
+      this.countdownTimer = null
     }
   },
 })

@@ -29,6 +29,7 @@
       <QuestionPreparing v-if="mode === 'preparing' || mode === 'waiting'" :queueCount="queueCount"
         :questionCount="questionCount" :queueQuestionCount="queueQuestionCount" :mode="mode" />
       <QuestionDisplay v-else-if="mode === 'interviewing'" :content="questionContent" />
+      <QuestionCounting v-else-if="mode === 'counting'" :countdown="countdown" />
     </template>
   </div>
 </template>

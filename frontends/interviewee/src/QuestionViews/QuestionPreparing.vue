@@ -4,7 +4,7 @@
     <p>本次面试共包含 {{ questionCount }} 道题目。当您准备就绪后，请点击下方的"我准备好了"按钮开始。</p>
     <p>
       <template v-if="queueCount === 0">
-        当前暂无候选人在您前面。点击按钮后，面试将在 15 秒内自动开始。
+        当前暂无候选人在您前面。点击按钮后，面试将在 {{ COUNTDOWN_TOTAL_TIME }} 秒内自动开始。
       </template>
       <template v-else-if="queueCount === 1">
         当前有 1 位候选人在您之前，他仍需完成 {{ queueQuestionCount }} 道题目。请稍候，您的面试即将开始。
@@ -35,6 +35,7 @@
 
 <script lang="ts" setup>
 import { getSocket } from '@/socket'
+import { COUNTDOWN_TOTAL_TIME } from '@/constants'
 
 defineProps<{
   questionCount: number,
