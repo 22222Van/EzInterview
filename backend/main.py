@@ -7,6 +7,11 @@ from uuid import UUID
 import json
 from pprint import pprint
 
+from typing import Optional, Any
+
+# 记录当前在线面试官的 websocket 连接
+interviewer_connection: Optional[ServerConnection] = None
+
 # 示例题目池
 questions: list[str] = [
     "请简要分析人工智能对未来社会的影响。",
@@ -21,36 +26,31 @@ questions: list[str] = [
     "请从你的生活经历谈谈一个改变你想法的事件。"
 ]
 
-# 存储当前连接和任务的映射
-# interviewee_client_tasks: dict[ServerConnection, asyncio.Task[None]] = {}
+
+async def send_payload(websocket: ServerConnection, id: UUID, payload: Any):
+    payloads_string = json.dumps(payload)
+    print(f"发送消息到{id}")
+    pprint(payload)
+    print()
+    await websocket.send(payloads_string)
 
 
 async def send_questions_to_client(
     websocket: ServerConnection, id: UUID
 ) -> None:
     for i in range(10, 0, -1):
-        payload = {
+        await send_payload(websocket, id, {
             'type': 'waiting',
             'count': i,
-        }
-        payloads_string = json.dumps(payload)
-        print(f"发送消息到{id}")
-        pprint(payload)
-        print()
-        await websocket.send(payloads_string)
+        })
         await asyncio.sleep(1)
 
     while True:
         question: str = random.choice(questions)
-        payload = {
+        await send_payload(websocket, id, {
             'type': 'question',
             'content': question,
-        }
-        payloads_string = json.dumps(payload)
-        print(f"发送消息到{id}")
-        pprint(payload)
-        print()
-        await websocket.send(payloads_string)
+        })
         await asyncio.sleep(1)
 
 
@@ -61,19 +61,34 @@ async def interviewee_handler(websocket: ServerConnection) -> None:
     task: asyncio.Task[None] = asyncio.create_task(
         send_questions_to_client(websocket, id)
     )
-    # interviewee_client_tasks[websocket] = task
 
     try:
         await websocket.wait_closed()
     finally:
         print(f"面试者端{id}断开")
         task.cancel()
-        # interviewee_client_tasks.pop(websocket, None)
 
 
 async def interviewer_handler(websocket: ServerConnection) -> None:
-    print("!!!")
-    pass  # TODO
+    id = websocket.id
+    print(f"面试官端{id}连接")
+
+    global interviewer_connection
+
+    if interviewer_connection is None:
+        print(f'允许面试官端{id}的连接')
+        interviewer_connection = websocket
+        # TODO: 发送允许消息，设置面试者端的初始状态
+    else:
+        print(f'拒绝面试官端{id}的连接')
+        await send_payload(websocket, id, {'type': 'reject'})
+
+    try:
+        await websocket.wait_closed()
+    finally:
+        print(f"面试官端{id}断开")
+        if interviewer_connection is websocket:
+            interviewer_connection = None
 
 
 async def main() -> None:

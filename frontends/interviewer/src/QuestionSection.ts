@@ -1,5 +1,5 @@
 import QuestionDisplay from './QuestionViews/QuestionDisplay.vue'
-import QuestionWaiting from './QuestionViews/QuestionWaiting.vue'
+import QuestionRejected from './QuestionViews/QuestionRejected.vue'
 
 import { defineComponent } from 'vue'
 
@@ -8,15 +8,15 @@ export default defineComponent({
   data() {
     return {
       connectionStatus: 'connecting' as 'connecting' | 'connected' | 'error',
-      mode: '' as '' | 'waiting' | 'question',
+      mode: '' as '' | 'rejected' | 'online',
       questionContent: '',
       waitingCount: 0,
-      steps: ['Step 1', 'Step 2', 'Step 3'],
-      currentStep: 1, // 控制当前高亮的步骤（从0开始）
+      steps: [],
+      currentStep: 0, // 控制当前高亮的步骤（从0开始）
     }
   },
   components: {
-    QuestionWaiting,
+    QuestionRejected,
     QuestionDisplay,
   },
   mounted() {
@@ -33,12 +33,11 @@ export default defineComponent({
       try {
         const data = JSON.parse(event.data)
 
-        if (data.type === 'waiting' && typeof data.count === 'number') {
-          this.mode = 'waiting'
-          this.waitingCount = data.count
-        } else if (data.type === 'question' && typeof data.content === 'string') {
-          this.mode = 'question'
-          this.questionContent = data.content
+        if (data.type === 'reject') {
+          this.mode = 'rejected'
+          // } else if (data.type === 'question' && typeof data.content === 'string') {
+          //   this.mode = 'question'
+          //   this.questionContent = data.content
         } else {
           console.warn('未知数据格式', data)
         }
