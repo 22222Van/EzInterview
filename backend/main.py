@@ -22,7 +22,7 @@ questions: list[str] = [
 ]
 
 # 存储当前连接和任务的映射
-client_tasks: dict[ServerConnection, asyncio.Task[None]] = {}
+# interviewee_client_tasks: dict[ServerConnection, asyncio.Task[None]] = {}
 
 
 async def send_questions_to_client(
@@ -34,7 +34,7 @@ async def send_questions_to_client(
             'count': i,
         }
         payloads_string = json.dumps(payload)
-        print(f"发送消息到客户端{id}")
+        print(f"发送消息到{id}")
         pprint(payload)
         print()
         await websocket.send(payloads_string)
@@ -47,32 +47,39 @@ async def send_questions_to_client(
             'content': question,
         }
         payloads_string = json.dumps(payload)
-        print(f"发送消息到客户端{id}")
+        print(f"发送消息到{id}")
         pprint(payload)
         print()
         await websocket.send(payloads_string)
         await asyncio.sleep(1)
 
 
-async def handler(websocket: ServerConnection) -> None:
+async def interviewee_handler(websocket: ServerConnection) -> None:
     id = websocket.id
 
-    print(f"客户端{id}连接")
+    print(f"面试者端{id}连接")
     task: asyncio.Task[None] = asyncio.create_task(
         send_questions_to_client(websocket, id)
     )
-    client_tasks[websocket] = task
+    # interviewee_client_tasks[websocket] = task
 
     try:
         await websocket.wait_closed()
     finally:
-        print(f"客户端{id}断开")
+        print(f"面试者端{id}断开")
         task.cancel()
-        client_tasks.pop(websocket, None)
+        # interviewee_client_tasks.pop(websocket, None)
+
+
+async def interviewer_handler(websocket: ServerConnection) -> None:
+    pass  # TODO
 
 
 async def main() -> None:
-    async with websockets.serve(handler, "0.0.0.0", 9009):
+    interviewee_server = websockets.serve(interviewee_handler, "0.0.0.0", 9009)
+    interviewer_server = websockets.serve(interviewer_handler, "0.0.0.0", 9008)
+
+    async with interviewee_server, interviewer_server:
         print("WebSocket 服务器已启动...")
         await asyncio.Future()
 
