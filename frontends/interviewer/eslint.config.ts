@@ -3,20 +3,27 @@ import { defineConfigWithVueTs, vueTsConfigs } from '@vue/eslint-config-typescri
 import pluginVue from 'eslint-plugin-vue'
 import skipFormatting from '@vue/eslint-config-prettier/skip-formatting'
 
-// To allow more languages other than `ts` in `.vue` files, uncomment the following lines:
-// import { configureVueProject } from '@vue/eslint-config-typescript'
-// configureVueProject({ scriptLangs: ['ts', 'tsx'] })
-// More info at https://github.com/vuejs/eslint-config-typescript/#advanced-setup
-
-export default defineConfigWithVueTs(
+export default [
+  // 全局忽略
   {
-    name: 'app/files-to-lint',
-    files: ['**/*.{ts,mts,tsx,vue}'],
+    ignores: ['**/dist/**', '**/dist-ssr/**', '**/coverage/**'],
   },
 
-  globalIgnores(['**/dist/**', '**/dist-ssr/**', '**/coverage/**']),
+  // Vue + TypeScript 规则配置
+  ...defineConfigWithVueTs(),
 
-  pluginVue.configs['flat/essential'],
-  vueTsConfigs.recommended,
+  // vue 基础配置
+  {
+    files: ['**/*.vue'],
+    ...pluginVue.configs['flat/essential'],
+  },
+
+  // 额外 TS 配置
+  {
+    files: ['**/*.{ts,tsx,mts}'],
+    ...vueTsConfigs.recommended,
+  },
+
+  // 关闭 Prettier 格式化（如适用）
   skipFormatting,
-)
+]
