@@ -1,5 +1,5 @@
 import QuestionDisplay from './QuestionViews/QuestionDisplay.vue'
-import QuestionWaiting from './QuestionViews/QuestionWaiting.vue'
+import QuestionPreparing from './QuestionViews/QuestionPreparing.vue'
 
 import { defineComponent } from 'vue'
 
@@ -8,15 +8,21 @@ export default defineComponent({
   data() {
     return {
       connectionStatus: 'connecting' as 'connecting' | 'connected' | 'error',
-      mode: '' as '' | 'waiting' | 'question',
+      mode: 'preparing' as 'preparing' | 'waiting' | 'counting' | 'interviewing' | 'finished',
       questionContent: '',
-      waitingCount: 0,
-      steps: [],
-      currentStep: 0, // 控制当前高亮的步骤（从0开始）
+      queueCount: 0,
+      queueQuestionCount: 0,
+      questionTitles: [],
+      currentQuestion: -1,
     }
   },
+  computed: {
+    questionCount(): number {
+      return this.questionTitles.length
+    },
+  },
   components: {
-    QuestionWaiting,
+    QuestionPreparing,
     QuestionDisplay,
   },
   mounted() {
@@ -35,9 +41,9 @@ export default defineComponent({
 
         if (data.type === 'waiting' && typeof data.count === 'number') {
           this.mode = 'waiting'
-          this.waitingCount = data.count
+          this.queueCount = data.count
         } else if (data.type === 'question' && typeof data.content === 'string') {
-          this.mode = 'question'
+          this.mode = 'interviewing'
           this.questionContent = data.content
         } else {
           console.warn('未知数据格式', data)
@@ -53,7 +59,6 @@ export default defineComponent({
 
     socket.onclose = () => {
       this.connectionStatus = 'error'
-      this.mode = ''
     }
   },
 })

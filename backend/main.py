@@ -35,38 +35,38 @@ async def send_payload(websocket: ServerConnection, id: UUID, payload: Any):
     await websocket.send(payloads_string)
 
 
-async def send_questions_to_client(
-    websocket: ServerConnection, id: UUID
-) -> None:
-    for i in range(10, 0, -1):
-        await send_payload(websocket, id, {
-            'type': 'waiting',
-            'count': i,
-        })
-        await asyncio.sleep(1)
+# async def send_questions_to_client(
+#     websocket: ServerConnection, id: UUID
+# ) -> None:
+#     for i in range(10, 0, -1):
+#         await send_payload(websocket, id, {
+#             'type': 'waiting',
+#             'count': i,
+#         })
+#         await asyncio.sleep(1)
 
-    while True:
-        question: str = random.choice(questions)
-        await send_payload(websocket, id, {
-            'type': 'question',
-            'content': question,
-        })
-        await asyncio.sleep(1)
+#     while True:
+#         question: str = random.choice(questions)
+#         await send_payload(websocket, id, {
+#             'type': 'question',
+#             'content': question,
+#         })
+#         await asyncio.sleep(1)
 
 
 async def interviewee_handler(websocket: ServerConnection) -> None:
     id = websocket.id
 
     print(f"面试者端{id}连接")
-    task: asyncio.Task[None] = asyncio.create_task(
-        send_questions_to_client(websocket, id)
-    )
+    # task: asyncio.Task[None] = asyncio.create_task(
+    #     send_questions_to_client(websocket, id)
+    # )
 
     try:
         await websocket.wait_closed()
     finally:
         print(f"面试者端{id}断开")
-        task.cancel()
+        # task.cancel()
 
 
 async def interviewer_handler(websocket: ServerConnection) -> None:

@@ -1,14 +1,14 @@
 <template>
   <div class="question-section">
-
     <div class="stepper-text">
-      <span v-for="(step, index) in steps" :key="index" :class="{
-        past: index < currentStep,
-        current: index === currentStep,
-        future: index > currentStep
+      <span>Questions: </span>
+      <span v-for="(step, index) in questionTitles" :key="index" :class="{
+        past: index < currentQuestion,
+        current: index === currentQuestion,
+        future: index > currentQuestion
       }">
         {{ step }}
-        <span v-if="index < steps.length - 1"> > </span>
+        <span v-if="index < questionTitles.length - 1"> > </span>
       </span>
     </div>
 
@@ -26,8 +26,9 @@
     </template>
 
     <template v-else>
-      <QuestionWaiting v-if="mode === 'waiting'" :count="waitingCount" />
-      <QuestionDisplay v-else-if="mode === 'question'" :content="questionContent" />
+      <QuestionPreparing v-if="mode === 'preparing'" :queueCount="queueCount" :questionCount="questionCount"
+        :queueQuestionCount="queueQuestionCount" />
+      <QuestionDisplay v-else-if="mode === 'interviewing'" :content="questionContent" />
     </template>
   </div>
 </template>
