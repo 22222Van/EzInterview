@@ -70,6 +70,14 @@ class InterviewSystem:
             return 'idle'
         return self.interviewing_state
 
+    def next_candidate(self) -> None:
+        if self.interviewing_candidate is not None:
+            self.finished_candidates.add(self.interviewing_candidate)
+        self.interviewing_candidate = None
+        if len(self.queueing_candidates) != 0:
+            self.interviewing_candidate = self.queueing_candidates.pop(0)
+            self.interviewing_state = 'counting'
+
     async def flush_frontends(self):
         shared_data = {
             'questionTitles': ['1', '2', '3', '4', '5', '6', '7', '8'],
@@ -124,7 +132,7 @@ class InterviewSystem:
             self.queueing_candidates.remove(websocket)
             await self.flush_frontends()
         elif websocket is self.interviewing_candidate:
-            # TODO: 上一个掉线之后自动下一个
+            self.next_candidate()
             await self.flush_frontends()
         elif websocket in self.finished_candidates:
             self.finished_candidates.remove(websocket)
