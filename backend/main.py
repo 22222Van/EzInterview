@@ -176,6 +176,8 @@ class InterviewSystem:
         self.interviewer: Optional[ServerConnection] = None  # 当前连接的面试官
         self.interviewing_state: SystemStateType = 'counting'  # 当前面试者的面试状态
         self.current_question: int = 0  # 当前面试者所在的题目索引，从0开始
+        self.ratings = []
+        self.comments = []
 
     async def init_interview(self) -> None:
         """
@@ -183,6 +185,8 @@ class InterviewSystem:
         """
         self.interviewing_state = 'counting'
         self.current_question = 0
+        self.ratings = [None for _ in range(len(self.questions))]
+        self.comments = ['' for _ in range(len(self.questions))]
         await self.flush_interviewer()
 
     @property
@@ -227,11 +231,14 @@ class InterviewSystem:
                 'questionTitles': [t for (t, _) in self.questions],
             })
         elif self.state == 'interviewing':
+            i = self.current_question
             await send_payload(self.interviewer, {
                 'type': 'interviewing',
-                'currentQuestion': self.current_question,
-                'content': self.questions[self.current_question][-1],
+                'currentQuestion': i,
+                'content': self.questions[i][-1],
                 'questionTitles': [t for (t, _) in self.questions],
+                'rating': self.ratings[i],
+                'comment': self.comments[i]
             })
 
     async def flush_current(self):
@@ -367,6 +374,33 @@ class InterviewSystem:
                 return False
         return True
 
+    async def parse_interviewer_message(
+        self, websocket: ServerConnection, data: dict[Any, Any]
+    ) -> bool:
+        if websocket is not self.interviewer:
+            return False
+
+        message_type = data.get('type', None)
+        rating = data.get('rating', None)
+        comment = data.get('comment', None)
+
+        i = self.current_question
+        self.ratings[i] = rating
+        self.comments[i] = comment
+
+        match message_type:
+            case 'next':
+                self.current_question += 1
+            case 'last':
+                self.current_question -= 1
+            case _:
+                return False
+
+        await self.flush_current()
+        await self.flush_interviewer()
+
+        return True
+
 
 system = InterviewSystem()
 
@@ -414,17 +448,29 @@ async def interviewer_handler(websocket: ServerConnection) -> None:
     print(f"面试官端{id}连接")
 
     if system.interviewer is not None:
-        await send_payload(system.interviewer, {'type': 'reject'})
+        try:
+            await send_payload(system.interviewer, {'type': 'reject'})
+        except:
+            pass
 
     system.interviewer = websocket
     await system.flush_interviewer()
 
     try:
-        await websocket.wait_closed()
+        async for message in websocket:
+            try:
+                data = json.loads(message)
+                if not isinstance(data, dict):
+                    print(f"从面试官{id}收到非字典消息: {message!r}")
+                    continue
+                result = await system.parse_interviewer_message(websocket, data)
+                if not result:
+                    print(f"从面试官{id}收到异常 JSON 消息: {message!r}")
+            except json.JSONDecodeError:
+                print(f"从面试官{id}收到非 JSON 消息: {message!r}")
     finally:
+        await system.pop_interviewee(websocket)
         print(f"面试官端{id}断开")
-        if system.interviewer is websocket:
-            system.interviewer = None
 
 
 async def main() -> None:

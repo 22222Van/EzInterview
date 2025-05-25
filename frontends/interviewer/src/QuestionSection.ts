@@ -17,6 +17,8 @@ export default defineComponent({
       waitingCount: 0,
       questionTitles: [],
       currentQuestion: -1,
+      currentRate: null as number | null,
+      currentComment: '' as string,
     }
   },
   components: {
@@ -49,12 +51,16 @@ export default defineComponent({
           data.type === 'interviewing' &&
           typeof data.currentQuestion === 'number' &&
           typeof data.content === 'string' &&
-          Array.isArray(data.questionTitles)
+          Array.isArray(data.questionTitles) &&
+          (data.rating === null || typeof data.rating === 'number') &&
+          typeof data.comment === 'string'
         ) {
           this.mode = 'interviewing'
           this.currentQuestion = data.currentQuestion
           this.questionContent = data.content
           this.questionTitles = data.questionTitles
+          this.currentRate = data.rating
+          this.currentComment = data.comment
         } else {
           console.warn('未知数据格式', data)
         }

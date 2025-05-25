@@ -29,8 +29,8 @@
       <QuestionRejected v-if="mode === 'rejected'" />
       <QuestionIdle v-else-if="mode === 'idle'" />
       <QuestionCounting v-else-if="mode === 'counting'" />
-      <QuestionDisplay v-else-if="mode === 'interviewing'" :content="questionContent"
-        :currentQuestion="currentQuestion" />
+      <QuestionDisplay v-else-if="mode === 'interviewing'" :content="questionContent" :currentQuestion="currentQuestion"
+        :rating="currentRate" :comment="currentComment" :key="currentQuestion" />
     </template>
   </div>
 </template>

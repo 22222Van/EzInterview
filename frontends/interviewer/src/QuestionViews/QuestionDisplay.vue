@@ -15,13 +15,13 @@
             </button>
           </div>
           <div class="button-container">
-            <button class="blue-button" @click="onLastQuestionClick">&lt;</button>
+            <button class="blue-button" :disabled="currentQuestion === 0" @click="onLastQuestionClick"> &lt; </button>
             <button class="blue-button" @click="onNextQuestionClick">&gt;</button>
           </div>
         </div>
         <div class="feedback-container">
           <span class="label">注释：</span>
-          <input class="comment-input" />
+          <input class="comment-input" v-model="selectedcomment" />
         </div>
       </div>
     </div>
@@ -29,19 +29,43 @@
 </template>
 
 <script lang="ts" setup>
-import { ref } from 'vue';
+import { ref, watch } from 'vue';
+import { getSocket } from '@/socket'
 
-const selectedRate = ref<number | null>(null);
+const socket = getSocket();
 
-defineProps<{
+const props = defineProps<{
   content: string,
   currentQuestion: number,
+  rating: number | null,
+  comment: string
 }>()
 
+// const emit = defineEmits<{
+//   (e: 'update:rating', value: number | null): void,
+//   (e: 'update:comment', value: string): void,
+// }>()
+
+const selectedRate = ref<number | null>(props.rating);
+const selectedcomment = ref<string>(props.comment)
+
+// watch(() => props.rating, (newVal) => {
+//   selectedRate.value = newVal;
+// });
+// watch(() => props.comment, (newVal) => {
+//   selectedcomment.value = newVal;
+// });
+
 function onLastQuestionClick() {
+  socket.send(JSON.stringify({ type: 'last', rating: selectedRate.value, comment: selectedcomment.value }))
 }
 
 function onNextQuestionClick() {
+  if (selectedRate.value === null) {
+    alert("请先为当前题目进行评分。");
+    return;
+  }
+  socket.send(JSON.stringify({ type: 'next', rating: selectedRate.value, comment: selectedcomment.value }))
 }
 
 function onRateClick(rate: number) {
@@ -79,6 +103,12 @@ function onRateClick(rate: number) {
 
 .blue-button {
   background-color: var(--ez-blue);
+}
+
+.blue-button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+  filter: none;
 }
 
 .rate-button {
