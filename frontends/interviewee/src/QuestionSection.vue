@@ -30,6 +30,7 @@
         :questionCount="questionCount" :queueQuestionCount="queueQuestionCount" :mode="mode" />
       <QuestionCounting v-else-if="mode === 'counting'" :countdown="countdown" />
       <QuestionInterviewing v-else-if="mode === 'interviewing'" :currentQuestion="currentQuestion" />
+      <QuestionFinished v-else-if="mode === 'finished'" />
     </template>
   </div>
 </template>
