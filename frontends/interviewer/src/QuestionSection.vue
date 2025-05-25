@@ -1,13 +1,14 @@
 <template>
   <div class="question-section">
     <div class="stepper-text">
-      <span v-for="(step, index) in steps" :key="index" :class="{
-        past: index < currentStep,
-        current: index === currentStep,
-        future: index > currentStep,
+      <span>Questions: </span>
+      <span v-for="(step, index) in questionTitles" :key="index" :class="{
+        past: index < currentQuestion,
+        current: index === currentQuestion,
+        future: index > currentQuestion,
       }">
         {{ step }}
-        <span v-if="index < steps.length - 1"> > </span>
+        <span v-if="index < questionTitles.length - 1"> > </span>
       </span>
     </div>
 
@@ -26,7 +27,7 @@
 
     <template v-else>
       <QuestionRejected v-if="mode === 'rejected'" />
-      <!-- <QuestionDisplay v-else-if="mode === 'obline'" :content="questionContent" /> -->
+      <QuestionDisplay v-else-if="mode === 'online'" :content="questionContent" :currentQuestion="currentQuestion" />
     </template>
   </div>
 </template>

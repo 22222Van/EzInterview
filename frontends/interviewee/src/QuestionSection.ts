@@ -12,7 +12,6 @@ export default defineComponent({
     return {
       connectionStatus: 'connecting' as 'connecting' | 'connected' | 'error',
       mode: '' as '' | 'preparing' | 'waiting' | 'counting' | 'interviewing' | 'finished',
-      questionContent: '',
       queueCount: 0,
       queueQuestionCount: 0,
       questionTitles: [],
