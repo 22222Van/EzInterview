@@ -3,9 +3,60 @@ import websockets
 
 import asyncio
 import json
-from pprint import pprint
-
+import logging
+from logging.handlers import RotatingFileHandler
 from typing import Optional, Any, Literal
+
+
+class ColorFormatter(logging.Formatter):
+    COLORS = {
+        'DEBUG': '\033[37m',     # 白色
+        'INFO': '\033[32m',      # 绿色
+        'WARNING': '\033[33m',   # 黄色
+        'ERROR': '\033[31m',     # 红色
+        'CRITICAL': '\033[41m',  # 红底白字
+    }
+    RESET = '\033[0m'
+
+    def format(self, record):
+        original_levelname = record.levelname
+        color = self.COLORS.get(record.levelname, self.RESET)
+        record.levelname = f"{color}{original_levelname}{self.RESET}"
+        formatted = super().format(record)
+        record.levelname = original_levelname
+        return formatted
+
+
+logger = logging.getLogger()
+logger.setLevel(logging.DEBUG)
+
+console_handler = logging.StreamHandler()
+console_handler.setLevel(logging.INFO)
+
+file_handler = RotatingFileHandler(
+    'interview_system.log',
+    maxBytes=10*1024*1024,  # 10MB
+    backupCount=5,          # 最多保留5个备份文件
+    encoding='utf-8'
+)
+file_handler.setLevel(logging.DEBUG)
+
+formatter = logging.Formatter(
+    "[%(asctime)s] [%(levelname)s] [%(name)s] %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S"
+)
+
+color_formatter = ColorFormatter(
+    "[%(asctime)s] [%(levelname)s] [%(name)s] %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S"
+)
+
+console_handler.setFormatter(color_formatter)
+file_handler.setFormatter(formatter)
+
+logger.addHandler(console_handler)
+logger.addHandler(file_handler)
+
 
 # 定义系统状态类型，限定为三种状态之一
 SystemStateType = Literal['idle', 'counting', 'interviewing']
@@ -19,16 +70,15 @@ IntervieweeStateType = Literal[
 async def send_payload(websocket: ServerConnection, payload: Any):
     """
     将给定的payload对象序列化为JSON字符串并发送给指定的WebSocket连接，
-    同时在控制台打印发送的消息内容和目标连接ID。
+    同时在日志中记录发送的消息内容和目标连接ID。
 
     Args:
         websocket (ServerConnection): 目标WebSocket连接。
         payload (Any): 要发送的数据（将被JSON序列化）。
     """
     payloads_string = json.dumps(payload)
-    print(f"发送消息到{websocket.id}")
-    pprint(payload)
-    print()
+    logger.debug(f"发送消息到{websocket.id}")
+    logger.debug(f"消息内容: {payload}")
     await websocket.send(payloads_string)
 
 
@@ -55,7 +105,7 @@ class InterviewSystem:
 
 关键词：
 社会竞争与效率悖论
-能否分析“内卷”背后的资源分配、职场文化或教育压力？是否能提供多维视角？
+能否分析"内卷"背后的资源分配、职场文化或教育压力？是否能提供多维视角？
 个体与集体反应
 是否反思个体在内卷中的应对方式，提出建设性建议或替代思维？
 批判与自省能力
@@ -173,6 +223,7 @@ class InterviewSystem:
         self.current_question = 0
         self.ratings = [None for _ in range(len(self.questions))]
         self.comments = ['' for _ in range(len(self.questions))]
+        logger.info("面试状态已初始化")
 
     @property
     def state(self) -> SystemStateType:
@@ -198,10 +249,12 @@ class InterviewSystem:
         if self.interviewing_candidate is not None:
             self.finished_candidates.add(self.interviewing_candidate)
             await send_payload(self.interviewing_candidate, {'type': 'finish'})
+            logger.info(f"面试者 {self.interviewing_candidate.id} 已完成面试")
         self.interviewing_candidate = None
         if len(self.queueing_candidates) != 0:
             self.interviewing_candidate = self.queueing_candidates.pop(0)
             self.init_interview()
+            logger.info(f"切换到新面试者 {self.interviewing_candidate.id}")
 
     async def flush_interviewer(self):
         if self.interviewer is None:
@@ -279,7 +332,7 @@ class InterviewSystem:
         results = await asyncio.gather(*tasks, return_exceptions=True)
         for r in results:
             if isinstance(r, Exception):
-                print(f"发送任务出错：{r}")
+                logger.error(f"发送任务出错：{r}")
 
     async def add_interviewee(self, websocket: ServerConnection):
         """
@@ -294,6 +347,7 @@ class InterviewSystem:
             websocket not in self.finished_candidates
         ):
             self.preparing_candidates.add(websocket)
+            logger.info(f"新增面试者 {websocket.id} 进入准备状态")
             await self.flush_queue()
 
     async def pop_interviewee(self, websocket: ServerConnection):
@@ -306,16 +360,20 @@ class InterviewSystem:
         """
         if websocket in self.preparing_candidates:
             self.preparing_candidates.remove(websocket)
+            logger.info(f"准备中的面试者 {websocket.id} 已断开连接")
         elif websocket in self.queueing_candidates:
             self.queueing_candidates.remove(websocket)
+            logger.info(f"排队中的面试者 {websocket.id} 已断开连接")
             await self.flush_queue()
         elif websocket is self.interviewing_candidate:
+            logger.info(f"当前面试者 {websocket.id} 已断开连接")
             await self.next_candidate()
             await self.flush_current()
             await self.flush_queue()
             await self.flush_interviewer()
         elif websocket in self.finished_candidates:
             self.finished_candidates.remove(websocket)
+            logger.info(f"已完成面试者 {websocket.id} 已断开连接")
 
     async def parse_interviewee_message(
         self, websocket: ServerConnection, data: dict[Any, Any]
@@ -337,7 +395,7 @@ class InterviewSystem:
         match data:
             case {'type': 'ready'}:
                 if websocket in self.preparing_candidates:
-                    print(f'面试者{websocket.id}已经准备好')
+                    logger.info(f'面试者 {websocket.id} 已经准备好')
                     self.preparing_candidates.remove(websocket)
                     if self.state == 'idle':
                         # 当前无面试者，直接开始面试
@@ -355,6 +413,7 @@ class InterviewSystem:
                 if websocket is self.interviewing_candidate:
                     # 当前面试者开始正式面试
                     self.interviewing_state = 'interviewing'
+                    logger.info(f'面试者 {websocket.id} 开始正式面试')
                     await self.flush_current()
                     await self.flush_interviewer()
             case _:
@@ -380,11 +439,14 @@ class InterviewSystem:
                 if self.current_question + 1 >= len(self.questions):
                     return False
                 self.current_question += 1
+                logger.info(f"面试官切换到下一题，当前题目索引: {self.current_question}")
             case 'last':
                 if self.current_question-1 < 0:
                     return False
                 self.current_question -= 1
+                logger.info(f"面试官切换到上一题，当前题目索引: {self.current_question}")
             case 'finish':
+                logger.info("面试官结束当前面试")
                 await self.next_candidate()
             case _:
                 return False
@@ -410,23 +472,25 @@ async def interviewee_handler(websocket: ServerConnection) -> None:
 
     id = websocket.id
     await system.add_interviewee(websocket)
-    print(f"面试者端{id}连接")
+    logger.info(f"面试者端 {id} 连接")
 
     try:
         async for message in websocket:
             try:
                 data = json.loads(message)
                 if not isinstance(data, dict):
-                    print(f"从面试者{id}收到非字典消息: {message!r}")
+                    logger.warning(f"从面试者 {id} 收到非字典消息: {message!r}")
                     continue
                 result = await system.parse_interviewee_message(websocket, data)
                 if not result:
-                    print(f"从面试者{id}收到异常 JSON 消息: {message!r}")
+                    logger.warning(f"从面试者 {id} 收到异常 JSON 消息: {message!r}")
             except json.JSONDecodeError:
-                print(f"从面试者{id}收到非 JSON 消息: {message!r}")
+                logger.warning(f"从面试者 {id} 收到非 JSON 消息: {message!r}")
+    except Exception as e:
+        logger.error(f"面试者 {id} 连接处理出错: {e}")
     finally:
         await system.pop_interviewee(websocket)
-        print(f"面试者端{id}断开")
+        logger.info(f"面试者端 {id} 断开")
 
 
 async def interviewer_handler(websocket: ServerConnection) -> None:
@@ -439,13 +503,14 @@ async def interviewer_handler(websocket: ServerConnection) -> None:
     global system
 
     id = websocket.id
-    print(f"面试官端{id}连接")
+    logger.info(f"面试官端 {id} 连接")
 
     if system.interviewer is not None:
         try:
             await send_payload(system.interviewer, {'type': 'reject'})
-        except:
-            pass
+            logger.warning(f"已有面试官连接，拒绝旧连接 {system.interviewer.id}")
+        except Exception as e:
+            logger.error(f"拒绝旧面试官连接时出错: {e}")
 
     system.interviewer = websocket
     await system.flush_interviewer()
@@ -455,16 +520,18 @@ async def interviewer_handler(websocket: ServerConnection) -> None:
             try:
                 data = json.loads(message)
                 if not isinstance(data, dict):
-                    print(f"从面试官{id}收到非字典消息: {message!r}")
+                    logger.warning(f"从面试官 {id} 收到非字典消息: {message!r}")
                     continue
                 result = await system.parse_interviewer_message(websocket, data)
                 if not result:
-                    print(f"从面试官{id}收到异常 JSON 消息: {message!r}")
+                    logger.warning(f"从面试官 {id} 收到异常 JSON 消息: {message!r}")
             except json.JSONDecodeError:
-                print(f"从面试官{id}收到非 JSON 消息: {message!r}")
+                logger.warning(f"从面试官 {id} 收到非 JSON 消息: {message!r}")
+    except Exception as e:
+        logger.error(f"面试官 {id} 连接处理出错: {e}")
     finally:
-        await system.pop_interviewee(websocket)
-        print(f"面试官端{id}断开")
+        system.interviewer = None
+        logger.info(f"面试官端 {id} 断开")
 
 
 async def main() -> None:
@@ -478,7 +545,7 @@ async def main() -> None:
     interviewer_server = websockets.serve(interviewer_handler, "0.0.0.0", 9008)
 
     async with interviewee_server, interviewer_server:
-        print("WebSocket 服务器已启动...")
+        logger.info("WebSocket 服务器已启动...")
         await asyncio.Future()
 
 
