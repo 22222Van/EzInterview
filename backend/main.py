@@ -52,7 +52,117 @@ class InterviewSystem:
     以及当前题目状态和面试官连接。
     """
     # 题目列表，展示在界面上方 '1 > 2 > 3 > ...' 位置
-    question_titles = ['1', '2', '3', '4', '5', '6', '7', '8']
+    questions = [
+        ("1",
+         """请简要分析人工智能对未来社会的影响。
+
+关键词：
+技术变革与社会结构
+分析AI如何改变就业、教育、医疗等方面。关注社会公平、技能替代、数字鸿沟等问题。
+伦理与法律挑战
+是否考虑AI的伦理边界、隐私保护和监管制度？观点应体现深度和现实关照。
+未来展望与个人态度
+是否表达了对AI发展的个人思考与态度？是否能结合实际做出理性判断？"""),
+
+        ("2",
+         """谈谈你对‘内卷’现象的看法。
+
+关键词：
+社会竞争与效率悖论
+能否分析“内卷”背后的资源分配、职场文化或教育压力？是否能提供多维视角？
+个体与集体反应
+是否反思个体在内卷中的应对方式，提出建设性建议或替代思维？
+批判与自省能力
+是否有批判性思维？是否从个人经验出发，展示对现象的深刻认知？"""),
+
+        ("3",
+         """环保和经济发展能否兼顾？
+
+关键词：
+系统思维与平衡观念
+能否看出应聘者是否意识到可持续发展和经济利益之间的张力？是否能提出协调路径？
+案例引用与逻辑严密
+是否能引用实际案例或政策？论证是否有逻辑性，能否指出短期与长期影响？
+价值观与行动建议
+是否展现出生态责任感？是否有可行的建议或倡导？"""),
+
+        ("4",
+         """如何在压力中保持心理健康？
+
+关键词：
+情绪识别与调节能力
+是否能描述具体压力来源与影响？是否能展示情绪管理技巧（如冥想、计划管理等）？
+资源利用与求助意识
+是否提到借助他人帮助或外部资源？展现出非孤立、协作式处理方式更佳。
+反思与成长导向
+是否从中有反思与改进？是否能从压力中提炼出学习与成长的契机？"""),
+
+        ("5",
+         """你如何看待远程办公？
+
+关键词：
+自我驱动与时间管理
+是否能结合自身经验说明远程办公对效率、自律的影响？是否展现出管理能力？
+沟通与协作适应性
+是否有应对远程沟通挑战的策略？是否关注团队协作与归属感维系？
+综合视角与批判思考
+能否权衡优劣？是否提到行业差异、职位属性等影响远程办公效果的变量？"""),
+
+        ("6",
+         """社交媒体对青少年有什么影响？
+
+关键词：
+影响维度多样性
+是否从心理健康、信息获取、社交能力等角度多维分析？
+正反对比与客观态度
+是否能权衡利弊，避免非黑即白？是否具备批判性视角？
+建设性建议
+是否能提出如何引导青少年合理使用社交媒体的方法或制度建议？"""),
+
+        ("7",
+         """你对传统文化在现代社会的价值有何看法？
+
+关键词：
+文化认同与现代适应
+是否能结合传统元素在当代的表现（如国潮、节日等）进行分析？
+创新与传承的张力
+是否意识到传统文化如何在技术、市场或审美上实现当代表达？
+个体连接与文化参与
+是否表达出与传统文化的个人联系或传承意愿？是否体现情感认同？"""),
+
+        ("8",
+         """如果你设计一门新课程，会是什么？
+
+关键词：
+洞察需求与定位清晰
+是否考虑学生需求或教育痛点？课程目的与内容是否紧密相关？
+内容设计与方法创新
+是否有创新的教学方法？是否包含跨学科元素或项目式学习？
+可行性与价值体现
+是否对实施方式、评估机制有考虑？是否展现教育理念和实际价值？"""),
+
+        ("9",
+         """终身学习对职场人意味着什么？
+
+关键词：
+学习动力与适应力
+是否理解终身学习对应快速变化的工作环境？是否提到主动学习的重要性？
+方法与实践结合
+是否分享个人学习方式（如阅读、课程、实战）？是否注重应用与反馈？
+职业发展视角
+是否联系到职业转型、技能更新等实际场景？体现目标感与战略眼光。"""),
+
+        ("10",
+         """请从你的生活经历谈谈一个改变你想法的事件。
+
+关键词：
+自我认知与反转时刻
+是否能讲述清晰的事件起因、转折与结果？重点在“想法转变”的动因分析。
+学习与成长轨迹
+是否体现从事件中获得的深刻领悟？是否有持续影响？
+真实性与感染力
+描述是否真实具体？能否引起共鸣？是否具有情感表达与反思深度？""")
+    ]
 
     def __init__(self) -> None:
         """
@@ -67,12 +177,13 @@ class InterviewSystem:
         self.interviewing_state: SystemStateType = 'counting'  # 当前面试者的面试状态
         self.current_question: int = 0  # 当前面试者所在的题目索引，从0开始
 
-    def init_interview(self) -> None:
+    async def init_interview(self) -> None:
         """
         初始化或重置面试状态，设置为计数状态并重置题目索引。
         """
         self.interviewing_state = 'counting'
         self.current_question = 0
+        await self.flush_interviewer()
 
     @property
     def state(self) -> SystemStateType:
@@ -88,7 +199,7 @@ class InterviewSystem:
             return 'idle'
         return self.interviewing_state
 
-    def next_candidate(self) -> None:
+    async def next_candidate(self) -> None:
         """
         切换到下一个面试者：
         - 将当前面试者加入已完成集合（如果存在）
@@ -100,7 +211,7 @@ class InterviewSystem:
         self.interviewing_candidate = None
         if len(self.queueing_candidates) != 0:
             self.interviewing_candidate = self.queueing_candidates.pop(0)
-            self.init_interview()
+            await self.init_interview()
 
     async def flush_interviewer(self):
         if self.interviewer is None:
@@ -113,10 +224,14 @@ class InterviewSystem:
         elif self.state == 'counting':
             await send_payload(self.interviewer, {
                 'type': 'counting',
+                'questionTitles': [t for (t, _) in self.questions],
             })
         elif self.state == 'interviewing':
             await send_payload(self.interviewer, {
                 'type': 'interviewing',
+                'currentQuestion': self.current_question,
+                'content': self.questions[self.current_question][-1],
+                'questionTitles': [t for (t, _) in self.questions],
             })
 
     async def flush_current(self):
@@ -138,8 +253,8 @@ class InterviewSystem:
         排队中的面试者收到 'waiting' 状态和其在队列中的位置。
         """
         shared_data = {
-            'questionTitles': self.question_titles,
-            'queueQuestionCount': len(self.question_titles)-self.current_question,
+            'questionTitles': [t for (t, _) in self.questions],
+            'queueQuestionCount': len(self.questions)-self.current_question,
         }
 
         tasks = []
@@ -202,9 +317,10 @@ class InterviewSystem:
             self.queueing_candidates.remove(websocket)
             await self.flush_queue()
         elif websocket is self.interviewing_candidate:
-            self.next_candidate()
+            await self.next_candidate()
             await self.flush_current()
             await self.flush_queue()
+            await self.flush_interviewer()
         elif websocket in self.finished_candidates:
             self.finished_candidates.remove(websocket)
 
@@ -232,10 +348,9 @@ class InterviewSystem:
                     self.preparing_candidates.remove(websocket)
                     if self.state == 'idle':
                         # 当前无面试者，直接开始面试
-                        self.init_interview()
                         self.interviewing_candidate = websocket
+                        await self.init_interview()
                         await self.flush_current()
-                        await self.flush_interviewer()
                     else:
                         # 系统正在面试，加入排队列表
                         self.queueing_candidates.append(websocket)
@@ -247,6 +362,7 @@ class InterviewSystem:
                     # 当前面试者开始正式面试
                     self.interviewing_state = 'interviewing'
                     await self.flush_current()
+                    await self.flush_interviewer()
             case _:
                 return False
         return True

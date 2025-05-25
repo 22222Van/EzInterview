@@ -41,8 +41,20 @@ export default defineComponent({
           this.mode = 'rejected'
         } else if (data.type === 'idle') {
           this.mode = 'idle'
-        } else if (data.type === 'counting') {
+        } else if (data.type === 'counting' && Array.isArray(data.questionTitles)) {
           this.mode = 'counting'
+          this.questionTitles = data.questionTitles
+          this.currentQuestion = -1
+        } else if (
+          data.type === 'interviewing' &&
+          typeof data.currentQuestion === 'number' &&
+          typeof data.content === 'string' &&
+          Array.isArray(data.questionTitles)
+        ) {
+          this.mode = 'interviewing'
+          this.currentQuestion = data.currentQuestion
+          this.questionContent = data.content
+          this.questionTitles = data.questionTitles
         } else {
           console.warn('未知数据格式', data)
         }
