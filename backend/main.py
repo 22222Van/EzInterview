@@ -102,6 +102,23 @@ class InterviewSystem:
             self.interviewing_candidate = self.queueing_candidates.pop(0)
             self.init_interview()
 
+    async def flush_interviewer(self):
+        if self.interviewer is None:
+            return
+
+        if self.state == 'idle':
+            await send_payload(self.interviewer, {
+                'type': 'idle',
+            })
+        elif self.state == 'counting':
+            await send_payload(self.interviewer, {
+                'type': 'counting',
+            })
+        elif self.state == 'interviewing':
+            await send_payload(self.interviewer, {
+                'type': 'interviewing',
+            })
+
     async def flush_current(self):
         """
         向当前正在面试的面试者发送当前状态和题目索引。
@@ -218,6 +235,7 @@ class InterviewSystem:
                         self.init_interview()
                         self.interviewing_candidate = websocket
                         await self.flush_current()
+                        await self.flush_interviewer()
                     else:
                         # 系统正在面试，加入排队列表
                         self.queueing_candidates.append(websocket)
@@ -279,15 +297,11 @@ async def interviewer_handler(websocket: ServerConnection) -> None:
     id = websocket.id
     print(f"面试官端{id}连接")
 
-    if system.interviewer is None:
-        # 允许唯一面试官连接
-        print(f'允许面试官端{id}的连接')
-        system.interviewer = websocket
-        # TODO: 发送允许消息，设置面试者端的初始状态
-    else:
-        # 拒绝其他面试官连接
-        print(f'拒绝面试官端{id}的连接')
-        await send_payload(websocket, {'type': 'reject'})
+    if system.interviewer is not None:
+        await send_payload(system.interviewer, {'type': 'reject'})
+
+    system.interviewer = websocket
+    await system.flush_interviewer()
 
     try:
         await websocket.wait_closed()

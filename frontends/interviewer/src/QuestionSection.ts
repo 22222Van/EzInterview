@@ -1,5 +1,8 @@
 import QuestionDisplay from './QuestionViews/QuestionDisplay.vue'
 import QuestionRejected from './QuestionViews/QuestionRejected.vue'
+import QuestionIdle from './QuestionViews/QuestionIdle.vue'
+import QuestionCounting from './QuestionViews/QuestionCounting.vue'
+import { getSocket } from '@/socket'
 
 import { defineComponent } from 'vue'
 
@@ -8,21 +11,22 @@ export default defineComponent({
   data() {
     return {
       connectionStatus: 'connecting' as 'connecting' | 'connected' | 'error',
-      mode: '' as '' | 'rejected' | 'online',
+      mode: '' as '' | 'rejected' | 'idle' | 'counting' | 'interviewing',
+      queueCount: 0,
       questionContent: '',
       waitingCount: 0,
-      steps: [],
-      currentStep: 0, // 控制当前高亮的步骤（从0开始）
+      questionTitles: [],
+      currentQuestion: -1,
     }
   },
   components: {
     QuestionRejected,
     QuestionDisplay,
+    QuestionIdle,
+    QuestionCounting,
   },
   mounted() {
-    const host = window.location.hostname
-    const port = '9008'
-    const socket = new WebSocket(`ws://${host}:${port}/`)
+    const socket = getSocket()
 
     socket.onopen = () => {
       console.log('WebSocket 已连接')
@@ -35,9 +39,10 @@ export default defineComponent({
 
         if (data.type === 'reject') {
           this.mode = 'rejected'
-          // } else if (data.type === 'question' && typeof data.content === 'string') {
-          //   this.mode = 'question'
-          //   this.questionContent = data.content
+        } else if (data.type === 'idle') {
+          this.mode = 'idle'
+        } else if (data.type === 'counting') {
+          this.mode = 'counting'
         } else {
           console.warn('未知数据格式', data)
         }

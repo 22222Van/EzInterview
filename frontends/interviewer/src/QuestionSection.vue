@@ -27,7 +27,10 @@
 
     <template v-else>
       <QuestionRejected v-if="mode === 'rejected'" />
-      <QuestionDisplay v-else-if="mode === 'online'" :content="questionContent" :currentQuestion="currentQuestion" />
+      <QuestionIdle v-else-if="mode === 'idle'" />
+      <QuestionCounting v-else-if="mode === 'counting'" />
+      <QuestionDisplay v-else-if="mode === 'interviewing'" :content="questionContent"
+        :currentQuestion="currentQuestion" />
     </template>
   </div>
 </template>
