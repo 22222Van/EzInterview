@@ -15,8 +15,13 @@
             </button>
           </div>
           <div class="button-container">
-            <button class="blue-button" :disabled="currentQuestion === 0" @click="onLastQuestionClick"> &lt; </button>
-            <button class="blue-button" @click="onNextQuestionClick">&gt;</button>
+            <button class="blue-button" :disabled="currentQuestion === 0" @click="onLastQuestionClick">&lt;</button>
+            <template v-if="questionNumber - 1 === currentQuestion">
+              <button class="blue-button" @click="onFinishQuestionClick">&gt;|</button>
+            </template>
+            <template v-else>
+              <button class="blue-button" @click="onNextQuestionClick">&gt;</button>
+            </template>
           </div>
         </div>
         <div class="feedback-container">
@@ -38,23 +43,12 @@ const props = defineProps<{
   content: string,
   currentQuestion: number,
   rating: number | null,
-  comment: string
+  comment: string,
+  questionNumber: number
 }>()
-
-// const emit = defineEmits<{
-//   (e: 'update:rating', value: number | null): void,
-//   (e: 'update:comment', value: string): void,
-// }>()
 
 const selectedRate = ref<number | null>(props.rating);
 const selectedcomment = ref<string>(props.comment)
-
-// watch(() => props.rating, (newVal) => {
-//   selectedRate.value = newVal;
-// });
-// watch(() => props.comment, (newVal) => {
-//   selectedcomment.value = newVal;
-// });
 
 function onLastQuestionClick() {
   socket.send(JSON.stringify({ type: 'last', rating: selectedRate.value, comment: selectedcomment.value }))
@@ -66,6 +60,14 @@ function onNextQuestionClick() {
     return;
   }
   socket.send(JSON.stringify({ type: 'next', rating: selectedRate.value, comment: selectedcomment.value }))
+}
+
+function onFinishQuestionClick() {
+  if (selectedRate.value === null) {
+    alert("请先为当前题目进行评分。");
+    return;
+  }
+  socket.send(JSON.stringify({ type: 'finish', rating: selectedRate.value, comment: selectedcomment.value }))
 }
 
 function onRateClick(rate: number) {

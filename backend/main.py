@@ -16,20 +16,6 @@ IntervieweeStateType = Literal[
 ]
 
 
-# questions: list[str] = [
-#     "请简要分析人工智能对未来社会的影响。",
-#     "谈谈你对‘内卷’现象的看法。",
-#     "环保和经济发展能否兼顾？",
-#     "如何在压力中保持心理健康？",
-#     "你如何看待远程办公？",
-#     "社交媒体对青少年有什么影响？",
-#     "你对传统文化在现代社会的价值有何看法？",
-#     "如果你设计一门新课程，会是什么？",
-#     "终身学习对职场人意味着什么？",
-#     "请从你的生活经历谈谈一个改变你想法的事件。"
-# ]
-
-
 async def send_payload(websocket: ServerConnection, payload: Any):
     """
     将给定的payload对象序列化为JSON字符串并发送给指定的WebSocket连接，
@@ -108,60 +94,60 @@ class InterviewSystem:
 综合视角与批判思考
 能否权衡优劣？是否提到行业差异、职位属性等影响远程办公效果的变量？"""),
 
-        ("6",
-         """社交媒体对青少年有什么影响？
+        #         ("6",
+        #          """社交媒体对青少年有什么影响？
 
-关键词：
-影响维度多样性
-是否从心理健康、信息获取、社交能力等角度多维分析？
-正反对比与客观态度
-是否能权衡利弊，避免非黑即白？是否具备批判性视角？
-建设性建议
-是否能提出如何引导青少年合理使用社交媒体的方法或制度建议？"""),
+        # 关键词：
+        # 影响维度多样性
+        # 是否从心理健康、信息获取、社交能力等角度多维分析？
+        # 正反对比与客观态度
+        # 是否能权衡利弊，避免非黑即白？是否具备批判性视角？
+        # 建设性建议
+        # 是否能提出如何引导青少年合理使用社交媒体的方法或制度建议？"""),
 
-        ("7",
-         """你对传统文化在现代社会的价值有何看法？
+        #         ("7",
+        #          """你对传统文化在现代社会的价值有何看法？
 
-关键词：
-文化认同与现代适应
-是否能结合传统元素在当代的表现（如国潮、节日等）进行分析？
-创新与传承的张力
-是否意识到传统文化如何在技术、市场或审美上实现当代表达？
-个体连接与文化参与
-是否表达出与传统文化的个人联系或传承意愿？是否体现情感认同？"""),
+        # 关键词：
+        # 文化认同与现代适应
+        # 是否能结合传统元素在当代的表现（如国潮、节日等）进行分析？
+        # 创新与传承的张力
+        # 是否意识到传统文化如何在技术、市场或审美上实现当代表达？
+        # 个体连接与文化参与
+        # 是否表达出与传统文化的个人联系或传承意愿？是否体现情感认同？"""),
 
-        ("8",
-         """如果你设计一门新课程，会是什么？
+        #         ("8",
+        #          """如果你设计一门新课程，会是什么？
 
-关键词：
-洞察需求与定位清晰
-是否考虑学生需求或教育痛点？课程目的与内容是否紧密相关？
-内容设计与方法创新
-是否有创新的教学方法？是否包含跨学科元素或项目式学习？
-可行性与价值体现
-是否对实施方式、评估机制有考虑？是否展现教育理念和实际价值？"""),
+        # 关键词：
+        # 洞察需求与定位清晰
+        # 是否考虑学生需求或教育痛点？课程目的与内容是否紧密相关？
+        # 内容设计与方法创新
+        # 是否有创新的教学方法？是否包含跨学科元素或项目式学习？
+        # 可行性与价值体现
+        # 是否对实施方式、评估机制有考虑？是否展现教育理念和实际价值？"""),
 
-        ("9",
-         """终身学习对职场人意味着什么？
+        #         ("9",
+        #          """终身学习对职场人意味着什么？
 
-关键词：
-学习动力与适应力
-是否理解终身学习对应快速变化的工作环境？是否提到主动学习的重要性？
-方法与实践结合
-是否分享个人学习方式（如阅读、课程、实战）？是否注重应用与反馈？
-职业发展视角
-是否联系到职业转型、技能更新等实际场景？体现目标感与战略眼光。"""),
+        # 关键词：
+        # 学习动力与适应力
+        # 是否理解终身学习对应快速变化的工作环境？是否提到主动学习的重要性？
+        # 方法与实践结合
+        # 是否分享个人学习方式（如阅读、课程、实战）？是否注重应用与反馈？
+        # 职业发展视角
+        # 是否联系到职业转型、技能更新等实际场景？体现目标感与战略眼光。"""),
 
-        ("10",
-         """请从你的生活经历谈谈一个改变你想法的事件。
+        #         ("10",
+        #          """请从你的生活经历谈谈一个改变你想法的事件。
 
-关键词：
-自我认知与反转时刻
-是否能讲述清晰的事件起因、转折与结果？重点在“想法转变”的动因分析。
-学习与成长轨迹
-是否体现从事件中获得的深刻领悟？是否有持续影响？
-真实性与感染力
-描述是否真实具体？能否引起共鸣？是否具有情感表达与反思深度？""")
+        # 关键词：
+        # 自我认知与反转时刻
+        # 是否能讲述清晰的事件起因、转折与结果？重点在“想法转变”的动因分析。
+        # 学习与成长轨迹
+        # 是否体现从事件中获得的深刻领悟？是否有持续影响？
+        # 真实性与感染力
+        # 描述是否真实具体？能否引起共鸣？是否具有情感表达与反思深度？"""),
     ]
 
     def __init__(self) -> None:
@@ -179,7 +165,7 @@ class InterviewSystem:
         self.ratings = []
         self.comments = []
 
-    async def init_interview(self) -> None:
+    def init_interview(self) -> None:
         """
         初始化或重置面试状态，设置为计数状态并重置题目索引。
         """
@@ -187,7 +173,6 @@ class InterviewSystem:
         self.current_question = 0
         self.ratings = [None for _ in range(len(self.questions))]
         self.comments = ['' for _ in range(len(self.questions))]
-        await self.flush_interviewer()
 
     @property
     def state(self) -> SystemStateType:
@@ -212,10 +197,11 @@ class InterviewSystem:
         """
         if self.interviewing_candidate is not None:
             self.finished_candidates.add(self.interviewing_candidate)
+            await send_payload(self.interviewing_candidate, {'type': 'finish'})
         self.interviewing_candidate = None
         if len(self.queueing_candidates) != 0:
             self.interviewing_candidate = self.queueing_candidates.pop(0)
-            await self.init_interview()
+            self.init_interview()
 
     async def flush_interviewer(self):
         if self.interviewer is None:
@@ -356,8 +342,9 @@ class InterviewSystem:
                     if self.state == 'idle':
                         # 当前无面试者，直接开始面试
                         self.interviewing_candidate = websocket
-                        await self.init_interview()
+                        self.init_interview()
                         await self.flush_current()
+                        await self.flush_interviewer()
                     else:
                         # 系统正在面试，加入排队列表
                         self.queueing_candidates.append(websocket)
@@ -390,14 +377,21 @@ class InterviewSystem:
 
         match message_type:
             case 'next':
+                if self.current_question + 1 >= len(self.questions):
+                    return False
                 self.current_question += 1
             case 'last':
+                if self.current_question-1 < 0:
+                    return False
                 self.current_question -= 1
+            case 'finish':
+                await self.next_candidate()
             case _:
                 return False
 
         await self.flush_current()
         await self.flush_interviewer()
+        await self.flush_queue()
 
         return True
 
