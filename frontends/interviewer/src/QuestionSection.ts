@@ -41,8 +41,10 @@ export default defineComponent({
 
         if (data.type === 'reject') {
           this.mode = 'rejected'
+          this.questionTitles = []
         } else if (data.type === 'idle') {
           this.mode = 'idle'
+          this.questionTitles = []
         } else if (data.type === 'counting' && Array.isArray(data.questionTitles)) {
           this.mode = 'counting'
           this.questionTitles = data.questionTitles
