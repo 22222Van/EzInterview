@@ -248,7 +248,10 @@ class InterviewSystem:
         """
         if self.interviewing_candidate is not None:
             self.finished_candidates.add(self.interviewing_candidate)
-            await send_payload(self.interviewing_candidate, {'type': 'finish'})
+            try:
+                await send_payload(self.interviewing_candidate, {'type': 'finish'})
+            except Exception as e:
+                logger.error(f"发送完成面试信息出错: {e}")
             logger.info(f"面试者 {self.interviewing_candidate.id} 已完成面试")
         self.interviewing_candidate = None
         if len(self.queueing_candidates) != 0:
