@@ -8,6 +8,7 @@ import {
   getQuestionMains,
   setAvailableQuestions,
   setQuestionMains,
+  setRealCurrentQuestion,
 } from '@/socket'
 
 import { defineComponent } from 'vue'
@@ -78,7 +79,8 @@ export default defineComponent({
           (data.rating === null || typeof data.rating === 'number') &&
           typeof data.comment === 'string' &&
           Array.isArray(data.availableQuestions) &&
-          Array.isArray(data.questionMains)
+          Array.isArray(data.questionMains) &&
+          typeof data.realCurrentQuestion === 'number'
         ) {
           this.mode = 'interviewing'
           this.currentQuestion = data.currentQuestion
@@ -90,6 +92,7 @@ export default defineComponent({
           this.currentComment = data.comment
           setAvailableQuestions(data.availableQuestions)
           setQuestionMains(data.questionMains)
+          setRealCurrentQuestion(data.realCurrentQuestion)
         } else {
           console.warn('未知数据格式', data)
         }

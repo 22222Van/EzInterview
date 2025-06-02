@@ -296,7 +296,8 @@ class InterviewSystem:
                 'rating': self.ratings[i],
                 'comment': self.comments[i],
                 'availableQuestions': self.current_questions_list,
-                'questionMains': [q[0] for q in self.questions]
+                'questionMains': [q[0] for q in self.questions],
+                'realCurrentQuestion': i,
             })
 
     async def flush_current(self):

@@ -1,5 +1,10 @@
 import { defineComponent, ref, watch } from 'vue'
-import { getSocket, getAvailableQuestions, getQuestionMains } from '@/socket'
+import {
+  getSocket,
+  getAvailableQuestions,
+  getQuestionMains,
+  getRealCurrentQuestion,
+} from '@/socket'
 
 interface Student {
   name: string
@@ -22,6 +27,7 @@ export default defineComponent({
       networkQuality: '非常好',
       availableQuestions: getAvailableQuestions(),
       questionMains: getQuestionMains(),
+      realCurrentQuestion: getRealCurrentQuestion(),
     }
   },
   methods: {

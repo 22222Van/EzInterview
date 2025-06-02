@@ -1,9 +1,11 @@
 <template>
   <div class="info-section">
     <div class="questions-selector">
-      <div v-for="(question, index) in questionMains" :key="index" class="question-item">
+      <div v-for="(question, index) in questionMains" :key="index" class="question-item"
+        :class="{ 'disabled-item': index === realCurrentQuestion }">
         <label>
-          <input type="checkbox" :value="index" v-model="availableQuestions" @change="sendChange" />
+          <input type="checkbox" :value="index" v-model="availableQuestions" @change="sendChange"
+            :disabled="index === realCurrentQuestion" />
           {{ question }}
         </label>
       </div>
@@ -45,7 +47,8 @@
   /* 占满宽度，并向左对齐 */
   width: 100%;
   align-self: flex-start;
-  padding: 0 10px; /* 与 controls-container 统一的左右内边距 */
+  padding: 0 10px;
+  /* 与 controls-container 统一的左右内边距 */
   box-sizing: border-box;
 }
 
@@ -164,5 +167,46 @@
   font-size: 12px;
   margin-top: 5px;
   opacity: 0.9;
+}
+
+
+/* —— 以下为新增，用于高亮 disabled 情况 —— */
+
+/* 当 question-item 带有 .disabled-item 类时，整行白底，文字和边框都改为蓝色 */
+.question-item.disabled-item {
+  background: white !important;
+  border-color: var(--ez-blue) !important;
+  cursor: default;
+  /* 禁用时不需要 hover 手型 */
+}
+
+/* 禁用态下去掉 hover 效果 */
+.question-item.disabled-item:hover {
+  background: white !important;
+}
+
+/* 控制 label 里的文字和复选框在禁用态下都变为蓝色 */
+.question-item.disabled-item label {
+  color: var(--ez-blue) !important;
+  cursor: default;
+}
+
+/* disabled 的 checkbox 边框和勾都改成蓝色 */
+.question-item.disabled-item input[type='checkbox'] {
+  border-color: var(--ez-blue);
+  background: rgba(0, 0, 0, 0);
+  /* 保持空白 */
+  cursor: default;
+}
+
+/* 如果 disabled 且被选中，则勾勾也显示蓝色 */
+.question-item.disabled-item input[type='checkbox']:checked {
+  background: var(--ez-blue);
+  border-color: var(--ez-blue);
+}
+
+.question-item.disabled-item input[type='checkbox']:checked::after {
+  border-color: white;
+  /* 白色对比勾 */
 }
 </style>
