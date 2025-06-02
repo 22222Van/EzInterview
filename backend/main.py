@@ -440,7 +440,7 @@ class InterviewSystem:
 
         message_type = data.get('type', None)
         rating = data.get('rating', None)
-        comment = data.get('comment', None)
+        comment = data.get('comment', '')
 
         i = self.current_question
         self.ratings[i] = rating
