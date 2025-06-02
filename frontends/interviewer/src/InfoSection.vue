@@ -1,9 +1,12 @@
 <template>
   <div class="info-section">
-    <img :src="avatarUrl" alt="头像" class="avatar" />
-    <div class="info">
-      <p><strong>姓名：</strong>{{ student.name }}</p>
-      <p><strong>学号：</strong>{{ student.id }}</p>
+    <div class="questions-selector">
+      <div v-for="(question, index) in questionMains" :key="index" class="question-item">
+        <label>
+          <input type="checkbox" :value="index" v-model="selectedIndexes" @change="sendChange" />
+          {{ question }}
+        </label>
+      </div>
     </div>
     <div class="controls-container">
       <div class="control-item">
