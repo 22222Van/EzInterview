@@ -25,14 +25,23 @@ export default defineComponent({
       volume: 50,
       micLevel: 70,
       networkQuality: '非常好',
-      availableQuestions: getAvailableQuestions(),
-      questionMains: getQuestionMains(),
-      realCurrentQuestion: getRealCurrentQuestion(),
     }
   },
   methods: {
     sendChange() {
       socket.send(JSON.stringify({ type: 'select', selection: this.availableQuestions }))
     },
+  },
+  setup() {
+    // 直接拿同一个 reactive 数组，不要再额外复制一份
+    const availableQuestions = getAvailableQuestions()
+    const questionMains = getQuestionMains()
+    const realCurrentQuestion = getRealCurrentQuestion()
+
+    return {
+      availableQuestions,
+      questionMains,
+      realCurrentQuestion,
+    }
   },
 })

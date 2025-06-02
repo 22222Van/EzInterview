@@ -189,6 +189,7 @@
 .question-item.disabled-item label {
   color: var(--ez-blue) !important;
   cursor: default;
+  font-weight: bold; /* 让文字变粗 */
 }
 
 /* disabled 的 checkbox 边框和勾都改成蓝色 */

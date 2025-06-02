@@ -13,30 +13,25 @@ export function getSocket(): WebSocket {
   return socket
 }
 
-const availableQuestions = reactive<number[]>([])
-const questionMains = reactive<string[]>([])
-const realCurrentQuestion = ref<number>(-1)
+const availableQuestions: Ref<number[]> = ref([]) // 用 ref 代替 reactive
+const questionMains: Ref<string[]> = ref([])
+const realCurrentQuestion: Ref<number> = ref(-1)
 
-export function getAvailableQuestions(): number[] {
+export function getAvailableQuestions(): Ref<number[]> {
   return availableQuestions
 }
-
-export function getQuestionMains(): string[] {
+export function getQuestionMains(): Ref<string[]> {
   return questionMains
 }
-
 export function getRealCurrentQuestion(): Ref<number> {
   return realCurrentQuestion
 }
-
 export function setAvailableQuestions(newArr: number[]): void {
-  availableQuestions.splice(0, availableQuestions.length, ...newArr)
+  availableQuestions.value = [...newArr]
 }
-
 export function setQuestionMains(newArr: string[]): void {
-  questionMains.splice(0, questionMains.length, ...newArr)
+  questionMains.value = [...newArr]
 }
-
 export function setRealCurrentQuestion(n: number): void {
   realCurrentQuestion.value = n
 }

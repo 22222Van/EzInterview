@@ -69,6 +69,7 @@ export default defineComponent({
           this.currentQuestion = -1
           setAvailableQuestions(data.availableQuestions)
           setQuestionMains(data.questionMains)
+          setRealCurrentQuestion(-1)
         } else if (
           data.type === 'interviewing' &&
           typeof data.currentQuestion === 'number' &&
