@@ -88,9 +88,9 @@ class InterviewSystem:
     以及当前题目状态和面试官连接。
     """
     # 题目列表：每个元素由三元组 (questionMain, questionKeywords, hint) 组成
-    #   - questionMain: 题目正文
-    #   - questionKeywords: 题目要点 / 答题思路
-    #   - hint: 面试者端的提示文字
+    #   - questionMain: 给面试官端的题目正文
+    #   - questionKeywords: 给面试官端的题目要点
+    #   - hint: 给被面试者端的提示文字
     questions = [
         (
             "请简要分析人工智能对未来社会的影响。",
