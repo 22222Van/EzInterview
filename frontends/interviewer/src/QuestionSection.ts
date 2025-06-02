@@ -15,6 +15,7 @@ export default defineComponent({
       queueCount: 0,
       questionContent: '',
       questionKeywords: '',
+      questionHint: '',
       waitingCount: 0,
       questionTitles: [],
       currentQuestion: -1,
@@ -55,6 +56,7 @@ export default defineComponent({
           typeof data.currentQuestion === 'number' &&
           typeof data.questionMain === 'string' &&
           typeof data.questionKeywords === 'string' &&
+          typeof data.questionHint === 'string' &&
           Array.isArray(data.questionTitles) &&
           (data.rating === null || typeof data.rating === 'number') &&
           typeof data.comment === 'string'
@@ -63,6 +65,7 @@ export default defineComponent({
           this.currentQuestion = data.currentQuestion
           this.questionContent = data.questionMain
           this.questionKeywords = data.questionKeywords
+          this.questionHint = data.questionHint
           this.questionTitles = data.questionTitles
           this.currentRate = data.rating
           this.currentComment = data.comment

@@ -19,6 +19,7 @@ export default defineComponent({
       currentQuestion: -1,
       countdown: -1,
       countdownTimer: null as null | number,
+      questionHint: '' as string,
     }
   },
   computed: {
@@ -85,9 +86,14 @@ export default defineComponent({
               }
             }, 1000)
           }
-        } else if (data.type === 'interviewing' && typeof data.currentQuestion === 'number') {
+        } else if (
+          data.type === 'interviewing' &&
+          typeof data.currentQuestion === 'number' &&
+          typeof data.questionHint == 'string'
+        ) {
           this.mode = 'interviewing'
           this.currentQuestion = data.currentQuestion
+          this.questionHint = data.questionHint
         } else if (data.type === 'finish') {
           this.mode = 'finished'
           this.currentQuestion = this.questionTitles.length

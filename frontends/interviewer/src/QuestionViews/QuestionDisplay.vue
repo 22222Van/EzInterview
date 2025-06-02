@@ -3,6 +3,8 @@
     <div class="hints-container">
       <h2>第 {{ currentQuestion + 1 }} 题</h2>
       <p>{{ content }}</p>
+      <h3>提示</h3>
+      <p>以下提示可以被面试者看到：{{ hint }}</p>
       <h3>关键词</h3>
       <p>{{ keywords }}</p>
     </div>
@@ -47,7 +49,8 @@ const props = defineProps<{
   rating: number | null,
   comment: string,
   questionNumber: number,
-  keywords: string
+  keywords: string,
+  hint: string
 }>()
 
 const selectedRate = ref<number | null>(props.rating);
