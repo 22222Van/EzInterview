@@ -6,6 +6,8 @@ interface Student {
   id: string
 }
 
+const socket = getSocket()
+
 export default defineComponent({
   name: 'InfoSection',
   data() {
@@ -24,7 +26,7 @@ export default defineComponent({
   },
   methods: {
     sendChange() {
-      alert(this.availableQuestions)
+      socket.send(JSON.stringify({ type: 'select', selection: this.availableQuestions }))
     },
   },
 })

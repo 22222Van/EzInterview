@@ -311,6 +311,7 @@ class InterviewSystem:
                 'type': self.interviewing_state,
                 'currentQuestion': self.current_question,
                 'questionHint': questionHint,
+                'questionTitles': [str(i+1) for i in range(len(self.current_questions_list))],
             })
 
     async def flush_queue(self):
@@ -443,6 +444,38 @@ class InterviewSystem:
                 return False
         return True
 
+    def change_selection(self, selection: list[int]):
+        # 1. 不能为空
+        if len(selection) == 0:
+            return False
+
+        # 2. 保存“当前正在显示的那道题”的绝对索引
+        old_abs = self.current_questions_list[self.current_question]
+
+        # 3. 检查传入列表里的每个元素：必须是 int 且在合法范围内
+        for s in selection:
+            if not isinstance(s, int):  # type:ignore
+                return False
+            if s < 0 or s >= len(self.questions):
+                return False
+
+        # 4. 去重并升序排序
+        new_list = sorted(set(selection))
+
+        # 5. 如果去重之后没有任何题，则无效
+        if len(new_list) == 0:
+            return False
+
+        # 6. 检查 old_abs 是否在 new_list 中，如果不在就无法保持当前题，返回 False
+        if old_abs not in new_list:
+            return False
+
+        # 7. 更新题目列表，并把指针设置到 new_list 中 old_abs 的位置
+        self.current_questions_list = new_list
+        self.current_question = new_list.index(old_abs)
+
+        return True
+
     async def parse_interviewer_message(
         self, websocket: ServerConnection, data: dict[Any, Any]
     ) -> bool:
@@ -452,30 +485,55 @@ class InterviewSystem:
         message_type = data.get('type', None)
         rating = data.get('rating', None)
         comment = data.get('comment', '')
+        selection = data.get('selection', [])
 
-        ptr = self.current_question
-        i = self.current_questions_list[ptr]
-        self.ratings[i] = rating
-        self.comments[i] = comment
+        ret = True
 
         match message_type:
             case 'next':
+                # 只在 next 分支修改 rating 和 comment
+                ptr = self.current_question
+                i = self.current_questions_list[ptr]
+                self.ratings[i] = rating
+                self.comments[i] = comment
+
                 if self.current_question + 1 >= len(self.current_questions_list):
                     return False
                 self.current_question += 1
                 logger.info(
                     f"面试官切换到下一题，当前题目索引: {self.current_questions_list[self.current_question]}"
                 )
+
             case 'last':
-                if self.current_question-1 < 0:
+                # 只在 last 分支修改 rating 和 comment
+                ptr = self.current_question
+                i = self.current_questions_list[ptr]
+                self.ratings[i] = rating
+                self.comments[i] = comment
+
+                if self.current_question - 1 < 0:
                     return False
                 self.current_question -= 1
                 logger.info(
                     f"面试官切换到上一题，当前题目索引: {self.current_questions_list[self.current_question]}"
                 )
+
             case 'finish':
+                # 只在 finish 分支修改 rating 和 comment
+                ptr = self.current_question
+                i = self.current_questions_list[ptr]
+                self.ratings[i] = rating
+                self.comments[i] = comment
+
                 logger.info("面试官结束当前面试")
                 await self.next_candidate()
+
+            case 'select':
+                # 只在 select 分支修改 selection
+                if self.state == 'idle':
+                    return False
+                ret = self.change_selection(selection)
+
             case _:
                 return False
 
@@ -483,7 +541,7 @@ class InterviewSystem:
         await self.flush_interviewer()
         await self.flush_queue()
 
-        return True
+        return ret
 
 
 system = InterviewSystem()

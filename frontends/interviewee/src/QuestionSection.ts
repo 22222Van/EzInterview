@@ -89,11 +89,13 @@ export default defineComponent({
         } else if (
           data.type === 'interviewing' &&
           typeof data.currentQuestion === 'number' &&
-          typeof data.questionHint == 'string'
+          typeof data.questionHint == 'string' &&
+          Array.isArray(data.questionTitles)
         ) {
           this.mode = 'interviewing'
           this.currentQuestion = data.currentQuestion
           this.questionHint = data.questionHint
+          this.questionTitles = data.questionTitles
         } else if (data.type === 'finish') {
           this.mode = 'finished'
           this.currentQuestion = this.questionTitles.length
