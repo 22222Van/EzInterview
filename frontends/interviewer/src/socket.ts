@@ -1,4 +1,5 @@
 import { INTERVIEWER_PORT } from '@/constants'
+import { reactive } from 'vue'
 
 let socket: WebSocket | null = null
 
@@ -9,4 +10,23 @@ export function getSocket(): WebSocket {
     socket = new WebSocket(`ws://${host}:${port}/`)
   }
   return socket
+}
+
+const availableQuestions = reactive<number[]>([])
+const questionMains = reactive<string[]>([])
+
+export function getAvailableQuestions(): number[] {
+  return availableQuestions
+}
+
+export function getQuestionMains(): string[] {
+  return questionMains
+}
+
+export function setAvailableQuestions(newArr: number[]): void {
+  availableQuestions.splice(0, availableQuestions.length, ...newArr)
+}
+
+export function setQuestionMains(newArr: string[]): void {
+  questionMains.splice(0, questionMains.length, ...newArr)
 }

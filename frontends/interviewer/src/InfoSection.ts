@@ -1,5 +1,5 @@
 import { defineComponent, ref, watch } from 'vue'
-import type { PropType } from 'vue'
+import { getSocket, getAvailableQuestions, getQuestionMains } from '@/socket'
 
 interface Student {
   name: string
@@ -18,35 +18,13 @@ export default defineComponent({
       volume: 50,
       micLevel: 70,
       networkQuality: '非常好',
+      availableQuestions: getAvailableQuestions(),
+      questionMains: getQuestionMains(),
     }
   },
-  props: {
-    availableQuestions: {
-      type: Array as PropType<number[]>,
-      default: () => [],
+  methods: {
+    sendChange() {
+      alert(this.availableQuestions)
     },
-    questionMains: {
-      type: Array as PropType<string[]>,
-      default: () => [],
-    },
-  },
-  setup(props) {
-    const selectedIndexes = ref([...props.availableQuestions])
-
-    watch(
-      () => props.availableQuestions,
-      (newVal) => {
-        selectedIndexes.value = [...newVal]
-      },
-    )
-
-    const sendChange = () => {
-      alert(selectedIndexes.value)
-    }
-
-    return {
-      selectedIndexes,
-      sendChange,
-    }
   },
 })

@@ -220,7 +220,7 @@ class InterviewSystem:
         self.comments: dict[int, str] = {}
 
     def get_startup_question_list(self) -> list[int]:
-        return [i for i in range(len(self.questions)) if i % 2 == 1]
+        return [i for i in range(len(self.questions)) if i % 2 == 0]
 
     def init_interview(self) -> None:
         """
@@ -279,6 +279,8 @@ class InterviewSystem:
             await send_payload(self.interviewer, {
                 'type': 'counting',
                 'questionTitles': [str(i+1) for i in range(len(self.current_questions_list))],
+                'availableQuestions': self.current_questions_list,
+                'questionMains': [q[0] for q in self.questions]
             })
         elif self.state == 'interviewing':
             ptr = self.current_question
@@ -292,7 +294,9 @@ class InterviewSystem:
                 'questionHint': questionHint,
                 'questionTitles': [str(i+1) for i in range(len(self.current_questions_list))],
                 'rating': self.ratings[i],
-                'comment': self.comments[i]
+                'comment': self.comments[i],
+                'availableQuestions': self.current_questions_list,
+                'questionMains': [q[0] for q in self.questions]
             })
 
     async def flush_current(self):

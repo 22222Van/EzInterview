@@ -1,7 +1,7 @@
 <template>
   <div class="container">
     <QuestionSection />
-    <InfoSection :availableQuestions="[1]" :questionMains="['114', '514']" />
+    <InfoSection />
   </div>
 </template>
 

@@ -2,7 +2,13 @@ import QuestionDisplay from './QuestionViews/QuestionDisplay.vue'
 import QuestionRejected from './QuestionViews/QuestionRejected.vue'
 import QuestionIdle from './QuestionViews/QuestionIdle.vue'
 import QuestionCounting from './QuestionViews/QuestionCounting.vue'
-import { getSocket } from '@/socket'
+import {
+  getSocket,
+  getAvailableQuestions,
+  getQuestionMains,
+  setAvailableQuestions,
+  setQuestionMains,
+} from '@/socket'
 
 import { defineComponent } from 'vue'
 
@@ -21,6 +27,8 @@ export default defineComponent({
       currentQuestion: -1,
       currentRate: null as number | null,
       currentComment: '' as string,
+      availableQuestions: getAvailableQuestions(),
+      questionMains: getQuestionMains(),
     }
   },
   components: {
@@ -47,10 +55,19 @@ export default defineComponent({
         } else if (data.type === 'idle') {
           this.mode = 'idle'
           this.questionTitles = []
-        } else if (data.type === 'counting' && Array.isArray(data.questionTitles)) {
+          setAvailableQuestions([])
+          setQuestionMains([])
+        } else if (
+          data.type === 'counting' &&
+          Array.isArray(data.questionTitles) &&
+          Array.isArray(data.availableQuestions) &&
+          Array.isArray(data.questionMains)
+        ) {
           this.mode = 'counting'
           this.questionTitles = data.questionTitles
           this.currentQuestion = -1
+          setAvailableQuestions(data.availableQuestions)
+          setQuestionMains(data.questionMains)
         } else if (
           data.type === 'interviewing' &&
           typeof data.currentQuestion === 'number' &&
@@ -59,7 +76,9 @@ export default defineComponent({
           typeof data.questionHint === 'string' &&
           Array.isArray(data.questionTitles) &&
           (data.rating === null || typeof data.rating === 'number') &&
-          typeof data.comment === 'string'
+          typeof data.comment === 'string' &&
+          Array.isArray(data.availableQuestions) &&
+          Array.isArray(data.questionMains)
         ) {
           this.mode = 'interviewing'
           this.currentQuestion = data.currentQuestion
@@ -69,6 +88,8 @@ export default defineComponent({
           this.questionTitles = data.questionTitles
           this.currentRate = data.rating
           this.currentComment = data.comment
+          setAvailableQuestions(data.availableQuestions)
+          setQuestionMains(data.questionMains)
         } else {
           console.warn('未知数据格式', data)
         }
