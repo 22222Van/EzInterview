@@ -3,6 +3,8 @@
     <div class="hints-container">
       <h2>第 {{ currentQuestion + 1 }} 题</h2>
       <p>{{ content }}</p>
+      <h3>关键词</h3>
+      <p>{{ keywords }}</p>
     </div>
     <div class="buttons">
       <div class="feedback-section">
@@ -44,7 +46,8 @@ const props = defineProps<{
   currentQuestion: number,
   rating: number | null,
   comment: string,
-  questionNumber: number
+  questionNumber: number,
+  keywords: string
 }>()
 
 const selectedRate = ref<number | null>(props.rating);

@@ -14,6 +14,7 @@ export default defineComponent({
       mode: '' as '' | 'rejected' | 'idle' | 'counting' | 'interviewing',
       queueCount: 0,
       questionContent: '',
+      questionKeywords: '',
       waitingCount: 0,
       questionTitles: [],
       currentQuestion: -1,
@@ -52,14 +53,16 @@ export default defineComponent({
         } else if (
           data.type === 'interviewing' &&
           typeof data.currentQuestion === 'number' &&
-          typeof data.content === 'string' &&
+          typeof data.questionMain === 'string' &&
+          typeof data.questionKeywords === 'string' &&
           Array.isArray(data.questionTitles) &&
           (data.rating === null || typeof data.rating === 'number') &&
           typeof data.comment === 'string'
         ) {
           this.mode = 'interviewing'
           this.currentQuestion = data.currentQuestion
-          this.questionContent = data.content
+          this.questionContent = data.questionMain
+          this.questionKeywords = data.questionKeywords
           this.questionTitles = data.questionTitles
           this.currentRate = data.rating
           this.currentComment = data.comment
