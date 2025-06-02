@@ -1,7 +1,7 @@
 <template>
   <div class="interview-container">
     <p><strong>您好，欢迎使用 EzInterview 面试系统！</strong></p>
-    <p>本次面试共包含 {{ questionCount }} 道题目。当您准备就绪后，请点击下方的"我准备好了"按钮开始。</p>
+    <p>本次面试共包含 {{ questionCount }} 道题目。当您准备就绪后，请点击下方的“我准备好了”按钮开始。</p>
     <p>
       <template v-if="queueCount === 0">
         当前暂无候选人在您前面。点击按钮后，面试将在 {{ COUNTDOWN_TOTAL_TIME }} 秒内自动开始。
@@ -13,7 +13,7 @@
         当前有 {{ queueCount }} 位候选人在您前面。请耐心等待，您的面试很快就会开始。
       </template>
     </p>
-    <p>等待期间，您可以使用下方文本框测试键盘输入，或点击"测试音频"按钮检查扬声器/耳机是否正常。如遇技术问题，请点击"帮助"按钮联系我们的支持团队。</p>
+    <p>等待期间，您可以使用下方文本框测试键盘输入，或点击“测试音频”按钮检查扬声器/耳机是否正常。如遇技术问题，请点击“帮助”按钮联系我们的支持团队。</p>
     <p>感谢您的耐心等待，祝您面试顺利！</p>
     <textarea placeholder="" class="test-textarea"></textarea>
     <div class="buttons">

@@ -215,8 +215,12 @@ class InterviewSystem:
         self.interviewer: Optional[ServerConnection] = None  # 当前连接的面试官
         self.interviewing_state: SystemStateType = 'counting'  # 当前面试者的面试状态
         self.current_question: int = 0  # 当前面试者所在的题目索引，从0开始
-        self.ratings = []
-        self.comments = []
+        self.current_questions_list: list[int] = []  # 当前面试者所在的题目索引，从0开始
+        self.ratings: dict[int, Optional[int]] = {}
+        self.comments: dict[int, str] = {}
+
+    def get_startup_question_list(self) -> list[int]:
+        return [i for i in range(len(self.questions)) if i % 2 == 1]
 
     def init_interview(self) -> None:
         """
@@ -224,8 +228,9 @@ class InterviewSystem:
         """
         self.interviewing_state = 'counting'
         self.current_question = 0
-        self.ratings = [None for _ in range(len(self.questions))]
-        self.comments = ['' for _ in range(len(self.questions))]
+        self.current_questions_list = self.get_startup_question_list()
+        self.ratings = {i: None for i in range(len(self.questions))}
+        self.comments = {i: '' for i in range(len(self.questions))}
         logger.info("面试状态已初始化")
 
     @property
@@ -273,18 +278,19 @@ class InterviewSystem:
         elif self.state == 'counting':
             await send_payload(self.interviewer, {
                 'type': 'counting',
-                'questionTitles': [str(i+1) for i in range(len(self.questions))],
+                'questionTitles': [str(i+1) for i in range(len(self.current_questions_list))],
             })
         elif self.state == 'interviewing':
-            i = self.current_question
+            ptr = self.current_question
+            i = self.current_questions_list[ptr]
             questionMain, questionKeywords, questionHint = self.questions[i]
             await send_payload(self.interviewer, {
                 'type': 'interviewing',
-                'currentQuestion': i,
+                'currentQuestion': ptr,
                 'questionMain': questionMain,
                 'questionKeywords': questionKeywords,
                 'questionHint': questionHint,
-                'questionTitles': [str(i+1) for i in range(len(self.questions))],
+                'questionTitles': [str(i+1) for i in range(len(self.current_questions_list))],
                 'rating': self.ratings[i],
                 'comment': self.comments[i]
             })
@@ -294,7 +300,8 @@ class InterviewSystem:
         向当前正在面试的面试者发送当前状态和题目索引。
         """
         if self.interviewing_candidate is not None:
-            i = self.current_question
+            ptr = self.current_question
+            i = self.current_questions_list[ptr]
             _, _, questionHint = self.questions[i]
             await send_payload(self.interviewing_candidate, {
                 'type': self.interviewing_state,
@@ -311,8 +318,8 @@ class InterviewSystem:
         排队中的面试者收到 'waiting' 状态和其在队列中的位置。
         """
         shared_data = {
-            'questionTitles': [str(i+1) for i in range(len(self.questions))],
-            'queueQuestionCount': len(self.questions)-self.current_question,
+            'questionTitles': [str(i+1) for i in range(len(self.get_startup_question_list()))],
+            'queueQuestionCount': len(self.current_questions_list)-self.current_question,
         }
 
         tasks = []
@@ -442,21 +449,26 @@ class InterviewSystem:
         rating = data.get('rating', None)
         comment = data.get('comment', '')
 
-        i = self.current_question
+        ptr = self.current_question
+        i = self.current_questions_list[ptr]
         self.ratings[i] = rating
         self.comments[i] = comment
 
         match message_type:
             case 'next':
-                if self.current_question + 1 >= len(self.questions):
+                if self.current_question + 1 >= len(self.current_questions_list):
                     return False
                 self.current_question += 1
-                logger.info(f"面试官切换到下一题，当前题目索引: {self.current_question}")
+                logger.info(
+                    f"面试官切换到下一题，当前题目索引: {self.current_questions_list[self.current_question]}"
+                )
             case 'last':
                 if self.current_question-1 < 0:
                     return False
                 self.current_question -= 1
-                logger.info(f"面试官切换到上一题，当前题目索引: {self.current_question}")
+                logger.info(
+                    f"面试官切换到上一题，当前题目索引: {self.current_questions_list[self.current_question]}"
+                )
             case 'finish':
                 logger.info("面试官结束当前面试")
                 await self.next_candidate()
