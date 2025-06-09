@@ -31,7 +31,7 @@
       <QuestionCounting v-else-if="mode === 'counting'" />
       <QuestionDisplay v-else-if="mode === 'interviewing'" :content="questionContent" :keywords="questionKeywords"
         :hint="questionHint" :currentQuestion="currentQuestion" :rating="currentRate" :comment="currentComment"
-        :key="currentQuestion" :questionNumber="questionTitles.length" />
+        :key="currentQuestion" :questionNumber="questionTitles.length" :showHint="showHint" />
     </template>
   </div>
 </template>

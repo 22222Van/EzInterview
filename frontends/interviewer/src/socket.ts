@@ -16,6 +16,7 @@ export function getSocket(): WebSocket {
 const availableQuestions: Ref<number[]> = ref([]) // 用 ref 代替 reactive
 const questionMains: Ref<string[]> = ref([])
 const realCurrentQuestion: Ref<number> = ref(-1)
+const showHint: Ref<boolean> = ref(false)
 
 export function getAvailableQuestions(): Ref<number[]> {
   return availableQuestions
@@ -34,4 +35,10 @@ export function setQuestionMains(newArr: string[]): void {
 }
 export function setRealCurrentQuestion(n: number): void {
   realCurrentQuestion.value = n
+}
+export function getShowHint(): Ref<boolean> {
+  return showHint
+}
+export function setShowHint(b: boolean): void {
+  showHint.value = b
 }

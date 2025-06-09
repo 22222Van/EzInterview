@@ -4,11 +4,16 @@
       <h2>第 {{ currentQuestion + 1 }} 题</h2>
       <p>{{ content }}</p>
       <h3>提示</h3>
-      <p>以下提示可以被面试者看到：{{ hint }}</p>
+      <p>{{ hint }}</p>
       <h3>关键词</h3>
       <p>{{ keywords }}</p>
     </div>
     <div class="buttons">
+      <div class="button-container-hint">
+        <button class="blue-button" :style="{ visibility: showHint ? 'hidden' : 'visible' }" @click="onShowHintClick">
+          展示 Hint
+        </button>
+      </div>
       <div class="feedback-section">
         <div class="feedback-container">
           <span class="label">你的打分：</span>
@@ -50,11 +55,12 @@ const props = defineProps<{
   comment: string,
   questionNumber: number,
   keywords: string,
-  hint: string
+  hint: string,
+  showHint: boolean,
 }>()
 
 const selectedRate = ref<number | null>(props.rating);
-const selectedcomment = ref<string>(props.comment)
+const selectedcomment = ref<string>(props.comment);
 
 function onLastQuestionClick() {
   socket.send(JSON.stringify({ type: 'last', rating: selectedRate.value, comment: selectedcomment.value }))
@@ -79,6 +85,11 @@ function onFinishQuestionClick() {
 function onRateClick(rate: number) {
   selectedRate.value = rate;
 }
+
+function onShowHintClick() {
+  socket.send(JSON.stringify({ type: 'hint' }))
+}
+
 </script>
 
 
@@ -130,6 +141,12 @@ function onRateClick(rate: number) {
 .button-container {
   display: flex;
   justify-content: flex-end;
+  gap: 0.8em;
+}
+
+.button-container-hint {
+  display: flex;
+  justify-content: flex-start;
   gap: 0.8em;
 }
 

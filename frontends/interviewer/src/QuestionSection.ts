@@ -30,6 +30,7 @@ export default defineComponent({
       currentComment: '' as string,
       availableQuestions: getAvailableQuestions(),
       questionMains: getQuestionMains(),
+      showHint: false,
     }
   },
   components: {
@@ -81,7 +82,8 @@ export default defineComponent({
           typeof data.comment === 'string' &&
           Array.isArray(data.availableQuestions) &&
           Array.isArray(data.questionMains) &&
-          typeof data.realCurrentQuestion === 'number'
+          typeof data.realCurrentQuestion === 'number' &&
+          typeof data.hint === 'boolean'
         ) {
           this.mode = 'interviewing'
           this.currentQuestion = data.currentQuestion
@@ -94,6 +96,7 @@ export default defineComponent({
           setAvailableQuestions(data.availableQuestions)
           setQuestionMains(data.questionMains)
           setRealCurrentQuestion(data.realCurrentQuestion)
+          this.showHint = data.hint
         } else {
           console.warn('未知数据格式', data)
         }
